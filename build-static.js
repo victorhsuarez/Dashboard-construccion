@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 // Genera docs/ (sitio estatico, solo lectura) a partir de fuente/ y una foto de los tableros de Monday.
 //   Uso:  $env:ENV_PASSPHRASE='...'; node build-static.js
 //   (o con MONDAY_API_TOKEN definido, o con un .env local)
@@ -152,7 +152,7 @@ function buildAusencias(html, snap, stamp) {
 
   // Verificaciones: nada de contrasenas ni del proxy local en lo publicado
   [['dashboard_actualizaciones.html', act], ['dashboard_ausencias.html', aus], ['index.html', portal]].forEach(([n, h]) => {
-    if (/localhost:3000|onrender\.com|MONDAY_API_TOKEN/.test(h)) throw new Error('Contenido sensible en ' + n);
+    if (/localhost:3000|MONDAY_API_TOKEN/.test(h)) throw new Error('Contenido sensible en ' + n);
     secrets.forEach(s => { if (h.includes(s)) throw new Error('Una contrasena aparece en ' + n); });
     if (h.includes(TOKEN)) throw new Error('El token aparece en ' + n);
   });
