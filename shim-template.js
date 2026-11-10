@@ -1,14 +1,16 @@
-/* Plantilla del codigo que se inyecta en las paginas publicadas.
+﻿/* Plantilla del codigo que se inyecta en las paginas publicadas.
    build-static.js sustituye los tres marcadores en mayuscula (SNAP, STAMP y TOAST) rodeados de guiones bajos.
-   Modo foto: responde con los datos incrustados. Modo vivo: consulta api.monday.com
-   directamente desde el navegador con la clave API que pega el usuario (solo lectura). */
+   Sin clave API: responde con la foto incrustada (solo lectura).
+   Con clave API: consulta y escribe directo en api.monday.com desde el navegador, con los permisos de esa clave. */
 var __SNAP = __SNAP_JSON__;
 var __STAMP = __STAMP_JSON__;
-var __RO = 'Solo lectura: esta pagina no guarda cambios en Monday.';
+var __NOKEY = 'Conecta tu clave API (boton \uD83D\uDD11 abajo a la izquierda) para guardar cambios en Monday.';
 var __TK_KEY = 'monday_api_key';
+var __USER_KEY = 'monday_user';
 var __state = 'snap'; // snap | live | offline | badkey
 
 function __tok() { try { return sessionStorage.getItem(__TK_KEY) || ''; } catch (e) { return ''; } }
+function __clearTok() { try { sessionStorage.removeItem(__TK_KEY); sessionStorage.removeItem(__USER_KEY); } catch (e) {} }
 function __roToast(m) { try { showToast(m__TOAST_ERR__); } catch (e) { alert(m); } }
 
 function __statusText() {
@@ -41,6 +43,13 @@ function __snapAnswer(query) {
   return { boards: [{ items_page: { cursor: null, items: items } }] };
 }
 
+function __gqlError(j) {
+  var msg = j.errors.map(function (x) { return x.message; }).join('; ');
+  var e = new Error(msg);
+  if (/not authenticated|unauthori[sz]ed|invalid.*token/i.test(msg)) e.auth = true;
+  return e;
+}
+
 async function __liveQuery(query, token) {
   var r = await fetch('https://api.monday.com/v2', {
     method: 'POST',
@@ -49,32 +58,67 @@ async function __liveQuery(query, token) {
   });
   var j = {};
   try { j = await r.json(); } catch (e) {}
-  if (r.status === 401 || r.status === 403) { var a = new Error('Clave API no valida'); a.auth = true; throw a; }
-  if (j.errors && j.errors.length) {
-    var msg = j.errors.map(function (x) { return x.message; }).join('; ');
-    var e2 = new Error(msg);
-    if (/not authenticated|unauthori[sz]ed|invalid.*token/i.test(msg)) e2.auth = true;
-    throw e2;
-  }
+  if (r.status === 401 || r.status === 403) { var a = new Error('Clave API no valida o sin permisos'); a.auth = true; throw a; }
+  if (j.errors && j.errors.length) throw __gqlError(j);
   if (!r.ok) throw new Error('Monday HTTP ' + r.status);
   return j.data;
 }
 
 async function mq(query) {
   query = String(query);
-  if (/^\s*mutation/i.test(query)) throw new Error(__RO);
   var t = __tok();
-  if (t) {
+  if (/^\s*mutation/i.test(query)) {
+    if (!t) throw new Error(__NOKEY);
     try { var d = await __liveQuery(query, t); __setState('live'); return d; }
     catch (e) {
-      if (e.auth) { try { sessionStorage.removeItem(__TK_KEY); } catch (x) {} __setState('badkey'); }
+      if (e.auth) { __clearTok(); __setState('badkey'); throw new Error('Clave API no valida o sin permisos. No se guardo el cambio.'); }
+      if (e instanceof TypeError) { __setState('offline'); throw new Error('Sin conexion con Monday. No se guardo el cambio.'); }
+      throw e;
+    }
+  }
+  if (t) {
+    try { var r = await __liveQuery(query, t); __setState('live'); return r; }
+    catch (e) {
+      if (e.auth) { __clearTok(); __setState('badkey'); }
       else if (e instanceof TypeError) { __setState('offline'); }
       else { throw e; }
     }
   }
   return __snapAnswer(query);
 }
-async function mup() { throw new Error(__RO); }
+
+async function mup(itemId, columnId, file) {
+  var t = __tok();
+  if (!t) throw new Error(__NOKEY);
+  if (!/^\d+$/.test(String(itemId)) || !/^[A-Za-z0-9_]+$/.test(String(columnId))) throw new Error('Datos de archivo invalidos');
+  var fd = new FormData();
+  fd.append('query', 'mutation ($file: File!) { add_file_to_column(item_id: ' + itemId + ', column_id: "' + columnId + '", file: $file) { id } }');
+  fd.append('variables[file]', file, file.name);
+  var r = await fetch('https://api.monday.com/v2', { method: 'POST', headers: { 'Authorization': t, 'API-Version': '2024-01' }, body: fd });
+  var j = {};
+  try { j = await r.json(); } catch (e) {}
+  if (j.errors && j.errors.length) throw __gqlError(j);
+  if (!r.ok) throw new Error('Monday HTTP ' + r.status);
+  return { success: true };
+}
+
+/* ---- Identidad: quien es el dueno de la clave (para las acciones de lider) ---- */
+async function __me() {
+  var n = '';
+  try { n = sessionStorage.getItem(__USER_KEY) || ''; } catch (e) {}
+  if (!n && __tok()) {
+    try { var d = await __liveQuery('{me{name}}', __tok()); n = d.me.name; sessionStorage.setItem(__USER_KEY, n); } catch (e) {}
+  }
+  return n;
+}
+function __norm(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+async function __leaderKey() {
+  var n = __norm(await __me());
+  if (n.indexOf('jesus') > -1 && n.indexOf('perez') > -1) return 'PEREZ';
+  if (n.indexOf('victor') > -1 && n.indexOf('suarez') > -1) return 'SUAREZ';
+  if (n.indexOf('anlli') > -1 && n.indexOf('varon') > -1) return 'VARON';
+  return '';
+}
 
 function __openApiModal() {
   var old = document.getElementById('__apiModal'); if (old) old.remove();
@@ -86,8 +130,9 @@ function __openApiModal() {
   box.style.cssText = 'background:#fff;color:#0f172a;border-radius:12px;padding:20px;width:min(420px,92vw);box-shadow:0 10px 40px rgba(0,0,0,.3)';
   box.innerHTML = '<div style="font-size:15px;font-weight:700;margin-bottom:6px">Conectar con Monday</div>' +
     '<div style="font-size:12px;color:#475569;line-height:1.5;margin-bottom:10px">Pega tu clave API personal de Monday ' +
-    '(avatar \u2192 Developers \u2192 My access tokens). Se guarda solo en esta pesta\u00f1a del navegador, ' +
-    'se env\u00eda \u00fanicamente a api.monday.com y la p\u00e1gina se actualiza sola cada 45 s. Solo lectura.</div>';
+    '(avatar \u2192 Developers \u2192 My access tokens). Se guarda solo en esta pesta\u00f1a del navegador y ' +
+    'se env\u00eda \u00fanicamente a api.monday.com. Podr\u00e1s ver y guardar cambios seg\u00fan tus permisos en Monday; ' +
+    'la p\u00e1gina se actualiza sola cada 45 s.</div>';
   var inp = document.createElement('input');
   inp.type = 'password'; inp.placeholder = 'Clave API de Monday'; inp.autocomplete = 'off';
   inp.style.cssText = 'width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px';
@@ -105,7 +150,7 @@ function __openApiModal() {
   bCancel.onclick = function () { ov.remove(); };
   if (connected) {
     var bOff = btn('Desconectar', '#fee2e2', '#991b1b');
-    bOff.onclick = function () { try { sessionStorage.removeItem(__TK_KEY); } catch (e) {} location.reload(); };
+    bOff.onclick = function () { __clearTok(); location.reload(); };
     row.appendChild(bOff);
   }
   row.appendChild(bCancel); row.appendChild(bOk);
@@ -114,8 +159,9 @@ function __openApiModal() {
     if (!t) { err.textContent = 'Escribe tu clave API.'; return; }
     bOk.disabled = true; bOk.textContent = 'Verificando\u2026'; err.textContent = '';
     try {
-      await __liveQuery('{me{name}}', t);
+      var d = await __liveQuery('{me{name}}', t);
       sessionStorage.setItem(__TK_KEY, t);
+      sessionStorage.setItem(__USER_KEY, d.me.name);
       location.reload();
     } catch (e) {
       bOk.disabled = false; bOk.textContent = 'Conectar';
@@ -137,8 +183,11 @@ document.addEventListener('DOMContentLoaded', function () {
   document.body.appendChild(p);
   if (__tok()) {
     __state = 'live';
-    __liveQuery('{me{name}}', __tok()).then(function () { __setState('live'); }).catch(function (e) {
-      if (e.auth) { try { sessionStorage.removeItem(__TK_KEY); } catch (x) {} __setState('badkey'); } else { __setState('offline'); }
+    __liveQuery('{me{name}}', __tok()).then(function (d) {
+      try { sessionStorage.setItem(__USER_KEY, d.me.name); } catch (x) {}
+      __setState('live');
+    }).catch(function (e) {
+      if (e.auth) { __clearTok(); __setState('badkey'); } else { __setState('offline'); }
     });
   }
   __setState(__state);

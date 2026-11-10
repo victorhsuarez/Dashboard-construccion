@@ -83,17 +83,28 @@ function buildActualizaciones(html, snap, stamp) {
   html = rep(html, 'function reqModAuth(', 'function __reqModAuth_live(', 'reqModAuth');
   html = rep(html, 'function reqModPwd(', 'function __reqModPwd_live(', 'reqModPwd');
   html = rep(html, 'function promptModAuth(', 'function __promptModAuth_live(', 'promptModAuth');
-  const extra =
-    '<script>\n' +
-    'function checkBackend(){var b=document.getElementById("backendBtn");if(b){b.textContent=__statusText();b.classList.add("ok");b.onclick=__openApiModal;}}\n' +
-    'function reqLiderPwd(r){var v=r?r.value:"apr";\n' +
-    '  if(v==="mis"){__roToast("\\"Mis HE\\" requiere sesion de lider y no esta disponible en esta pagina de solo lectura.");\n' +
-    '    var c=document.querySelector(\'input[name="otr"][value="col"]\');if(c)c.checked=true;setOTRole("col");return;}\n' +
-    '  setOTRole("apr");}\n' +
-    'function reqModAuth(){__roToast("Vista de solo lectura: el acceso de lider esta deshabilitado.");}\n' +
-    'function reqModPwd(){__roToast(__RO);}\n' +
-    'function promptModAuth(){__roToast(__RO);}\n' +
-    '</script>\n';
+  // Las acciones de lider se habilitan por identidad en Monday (dueno de la clave API), sin contrasenas.
+  const extra = `<script>
+function checkBackend(){var b=document.getElementById("backendBtn");if(b){b.textContent=__statusText();b.classList.add("ok");b.onclick=__openApiModal;}}
+async function __needLeader(){
+  if(!__tok()){__roToast("Conecta tu clave API (boton de abajo a la izquierda) para continuar.");return "";}
+  var k=await __leaderKey();
+  if(!k){__roToast("Solo los lideres (Perez, Suarez, Varon) pueden hacer esta accion.");return "";}
+  currentLider=k;return k;
+}
+async function reqLiderPwd(r){
+  var v=r?r.value:"apr";
+  if(await __needLeader()){setOTRole(v);}
+  else{var c=document.querySelector('input[name="otr"][value="col"]');if(c)c.checked=true;}
+}
+async function reqModAuth(){
+  if(modLiderAuth){if(confirm("\\u00bfCerrar la sesi\\u00f3n de l\\u00edder?")){setModLiderAuth(false);}return;}
+  if(await __needLeader()){setModLiderAuth(true);}
+}
+async function reqModPwd(){if(await __needLeader()){setModLiderAuth(true);openModNew();}}
+async function promptModAuth(id){if(await __needLeader()){setModLiderAuth(true);openModEdit(id);}}
+</script>
+`;
   return injectShim(html, shim(snap, stamp, ",'err'") + extra);
 }
 
@@ -101,14 +112,23 @@ function buildAusencias(html, snap, stamp) {
   html = repRe(html, /const APR_PASSWORD\s*=\s*'[^']*';/, "const APR_PASSWORD = '';", 'APR_PASSWORD');
   html = rep(html, 'async function mq(', 'async function __mq_live(', 'mq');
   html = rep(html, "'http://localhost:3000/api/monday/query'", "'#static'", 'url query');
-  html = rep(html, "'http://localhost:3000/api/monday/upload'", "'#static'", 'url upload');
+  // Crear solicitud: capturar el id del item creado y subir adjuntos con la clave del usuario
+  html = rep(html, 'await mq(mutation);', 'const __cr = await mq(mutation); const itemId = __cr.create_item.id;', 'create_item id');
+  html = rep(html, "await fetch('http://localhost:3000/api/monday/upload', {method:'POST',body:fd});", "await mup(itemId, 'file_mm7g6w04', f);", 'upload');
   html = rep(html, 'function reqAprPwd(', 'function __reqAprPwd_live(', 'reqAprPwd');
   html = rep(html, 'async function confirmAprPwd(', 'async function __confirmAprPwd_live(', 'confirmAprPwd');
-  const extra =
-    '<script>\n' +
-    'function reqAprPwd(){__roToast(__RO);}\n' +
-    'async function confirmAprPwd(){__roToast(__RO);}\n' +
-    '</script>\n';
+  // Solo Anlli Liliana Varon aprueba/rechaza (regla original), validado por la identidad de la clave API
+  const extra = `<script>
+async function reqAprPwd(action){
+  if(!__tok()){__roToast("Conecta tu clave API (boton de abajo a la izquierda) para continuar.");return;}
+  if((await __leaderKey())!=="VARON"){__roToast("Solo Anlli Liliana Varon puede aprobar o rechazar.");return;}
+  pendingAprAction=action;
+  document.getElementById("aprPwdInput").value="";
+  await __confirmAprPwd_live();
+}
+async function confirmAprPwd(){}
+</script>
+`;
   return injectShim(html, shim(snap, stamp, ',false') + extra);
 }
 

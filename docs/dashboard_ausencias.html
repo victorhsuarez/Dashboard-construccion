@@ -29,15 +29,17 @@
 <script>
 /* Plantilla del codigo que se inyecta en las paginas publicadas.
    build-static.js sustituye los tres marcadores en mayuscula (SNAP, STAMP y TOAST) rodeados de guiones bajos.
-   Modo foto: responde con los datos incrustados. Modo vivo: consulta api.monday.com
-   directamente desde el navegador con la clave API que pega el usuario (solo lectura). */
+   Sin clave API: responde con la foto incrustada (solo lectura).
+   Con clave API: consulta y escribe directo en api.monday.com desde el navegador, con los permisos de esa clave. */
 var __SNAP = {"18432588237":{"columns":[{"id":"name","title":"Name","type":"name"},{"id":"subtasks_mm7q2bxz","title":"Subitems","type":"subtasks"},{"id":"text_mm7gxx4s","title":"Backup","type":"text"},{"id":"multiple_person_mm7gtypz","title":"Contacto","type":"people"},{"id":"status","title":"Motivo","type":"status"},{"id":"color_mm7g7naz","title":"Región","type":"status"},{"id":"date4","title":"Fecha de Solicitud","type":"date"},{"id":"timerange_mm7gjxra","title":"Cronograma","type":"timeline"},{"id":"numeric_mm7gf0nh","title":"Dias Ausencias","type":"numbers"},{"id":"file_mm7g6w04","title":"Soporte Ausencia","type":"file"},{"id":"color_mm7qmmkn","title":"Aprobante","type":"status"},{"id":"color_mm7gg2a7","title":"Estado Aprobación","type":"status"},{"id":"text_mm7g4np1","title":"Observaciones","type":"text"},{"id":"text_mm821rme","title":"Observaciones Manager","type":"text"}],"items":[{"id":"13127059480","name":"Item 1","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"","value":null},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":null,"value":null},{"id":"color_mm7g7naz","text":"","value":null},{"id":"date4","text":"2025-09-17","value":"{\"date\":\"2025-09-17\",\"icon\":null,\"changed_at\":\"2025-09-16T07:52:16.028Z\"}"},{"id":"timerange_mm7gjxra","text":"","value":null},{"id":"numeric_mm7gf0nh","text":"","value":null},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":null,"value":null},{"id":"color_mm7gg2a7","text":null,"value":null},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"","value":null}]},{"id":"13209647689","name":"JULIETH CALDAS","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"PAOLA CAGUA - paola.cagua@ibm.com","value":"\"PAOLA CAGUA - paola.cagua@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Vacaciones","value":"{\"index\":1}"},{"id":"color_mm7g7naz","text":"NOR-PAC","value":"{\"index\":3}"},{"id":"date4","text":"2026-10-05","value":"{\"date\":\"2026-10-05\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-03 - 2026-11-06","value":"{\"to\":\"2026-11-06\",\"from\":\"2026-11-03\"}"},{"id":"numeric_mm7gf0nh","text":"4","value":"\"4\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-12T22:38:23.044Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP","value":"\"Por favor cargarlas en SAP\""}]},{"id":"13256466706","name":"Yessica Pérez","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Francisco Rojas - Francisco.Javier.Rojas.Rojas@ibm.com","value":"\"Francisco Rojas - Francisco.Javier.Rojas.Rojas@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Vacaciones","value":"{\"index\":1}"},{"id":"color_mm7g7naz","text":"CENTRO-SUR","value":"{\"index\":2}"},{"id":"date4","text":"2026-10-10","value":"{\"date\":\"2026-10-10\"}"},{"id":"timerange_mm7gjxra","text":"2026-12-02 - 2026-12-09","value":"{\"to\":\"2026-12-09\",\"from\":\"2026-12-02\"}"},{"id":"numeric_mm7gf0nh","text":"6","value":"\"6\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-12T22:39:44.428Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP","value":"\"Por favor cargarlas en SAP\""}]},{"id":"13218058056","name":"Karen Tatiana Aldana Veloza","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Yeimy Carolina Garzon - carolina.garzon@ibm.com","value":"\"Yeimy Carolina Garzon - carolina.garzon@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Vacaciones","value":"{\"index\":1}"},{"id":"color_mm7g7naz","text":"PACIFICO","value":"{\"index\":0}"},{"id":"date4","text":"2026-10-06","value":"{\"date\":\"2026-10-06\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-06 - 2026-11-10","value":"{\"to\":\"2026-11-10\",\"from\":\"2026-11-06\"}"},{"id":"numeric_mm7gf0nh","text":"3","value":"\"3\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-12T22:44:35.866Z\"}"},{"id":"text_mm7g4np1","text":"Vacaciones","value":"\"Vacaciones\""},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP","value":"\"Por favor cargarlas en SAP\""}]},{"id":"13210109321","name":"Víctor Hugo Suárez Ardila","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Jesus Alberto Pérez - jesusa.perezh@ext.cemex.com","value":"\"Jesus Alberto Pérez - jesusa.perezh@ext.cemex.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Vacaciones","value":"{\"index\":1}"},{"id":"color_mm7g7naz","text":"CENTRO-SUR","value":"{\"index\":2}"},{"id":"date4","text":"2026-10-05","value":"{\"date\":\"2026-10-05\"}"},{"id":"timerange_mm7gjxra","text":"2026-10-09 - 2026-10-09","value":"{\"to\":\"2026-10-09\",\"from\":\"2026-10-09\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-12T22:45:22.499Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Ok carga en SAP","value":"\"Ok carga en SAP\""}]},{"id":"13269833165","name":"Daniel Sebastian Reina","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Brigitte Tatiana Rodriguez Gaona - brigitte.rodriguez@ext.cemex.com","value":"\"Brigitte Tatiana Rodriguez Gaona - brigitte.rodriguez@ext.cemex.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Vacaciones","value":"{\"index\":1}"},{"id":"color_mm7g7naz","text":"NORESTE","value":"{\"index\":1}"},{"id":"date4","text":"2026-10-12","value":"{\"date\":\"2026-10-12\"}"},{"id":"timerange_mm7gjxra","text":"2026-12-04 - 2026-12-07","value":"{\"to\":\"2026-12-07\",\"from\":\"2026-12-04\"}"},{"id":"numeric_mm7gf0nh","text":"2","value":"\"2\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-12T23:00:25.377Z\"}"},{"id":"text_mm7g4np1","text":"Se solicitan estos dias por cuestiones familiares","value":"\"Se solicitan estos dias por cuestiones familiares\""},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP","value":"\"Por favor cargarlas en SAP\""}]},{"id":"13240862400","name":"Jesus Perez","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Paola Cagua","value":"\"Paola Cagua\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Vacaciones","value":"{\"index\":1}"},{"id":"color_mm7g7naz","text":"PACIFICO","value":"{\"index\":0}"},{"id":"date4","text":"2026-10-08","value":"{\"date\":\"2026-10-08\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-06 - 2026-11-10","value":"{\"to\":\"2026-11-10\",\"from\":\"2026-11-06\"}"},{"id":"numeric_mm7gf0nh","text":"3","value":"\"3\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-16T22:27:06.566Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Aprobadas con la corrección realizada, por favor subirlas a SAPSUCC","value":"\"Aprobadas con la corrección realizada, por favor subirlas a SAPSUCC\""}]},{"id":"13278480608","name":"Angela Melo","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Daniel Perez - angela.yazmin.melo@ibm.com","value":"\"Daniel Perez - angela.yazmin.melo@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"CENTRO-SUR","value":"{\"index\":2}"},{"id":"date4","text":"2026-10-13","value":"{\"date\":\"2026-10-13\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-06 - 2026-11-06","value":"{\"to\":\"2026-11-06\",\"from\":\"2026-11-06\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-30T17:43:37.797Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP Hoy","value":"\"Por favor cargarlas en SAP Hoy\""}]},{"id":"13278461480","name":"Angela Melo","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Daniel Perez - angela.yazmin.melo@ibm.com","value":"\"Daniel Perez - angela.yazmin.melo@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Vacaciones","value":"{\"index\":1}"},{"id":"color_mm7g7naz","text":"CENTRO-SUR","value":"{\"index\":2}"},{"id":"date4","text":"2026-10-13","value":"{\"date\":\"2026-10-13\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-09 - 2026-11-09","value":"{\"to\":\"2026-11-09\",\"from\":\"2026-11-09\",\"changed_at\":\"2026-10-13T16:19:14.992Z\",\"visualization_type\":null}"},{"id":"numeric_mm7gf0nh","text":"2","value":"\"2\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-30T17:43:39.852Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP Hoy","value":"\"Por favor cargarlas en SAP Hoy\""}]},{"id":"13349586997","name":"Francisco Rojas","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Yessica Martinez - Yessica.Perez.Martinez@ibm.com","value":"\"Yessica Martinez - Yessica.Perez.Martinez@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"CENTRO-SUR","value":"{\"index\":2}"},{"id":"date4","text":"2026-10-21","value":"{\"date\":\"2026-10-21\"}"},{"id":"timerange_mm7gjxra","text":"2026-12-08 - 2026-12-08","value":"{\"to\":\"2026-12-08\",\"from\":\"2026-12-08\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-30T17:44:21.378Z\"}"},{"id":"text_mm7g4np1","text":"Dia familia","value":"\"Dia familia\""},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP Hoy","value":"\"Por favor cargarlas en SAP Hoy\""}]},{"id":"13349635322","name":"Angela Cartagena","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Alejandra Arias - alejandra.arias@ibm.com","value":"\"Alejandra Arias - alejandra.arias@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"CENTRO-SUR","value":"{\"index\":2}"},{"id":"date4","text":"2026-10-21","value":"{\"date\":\"2026-10-21\"}"},{"id":"timerange_mm7gjxra","text":"2026-12-17 - 2026-12-17","value":"{\"to\":\"2026-12-17\",\"from\":\"2026-12-17\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-30T17:44:23.436Z\"}"},{"id":"text_mm7g4np1","text":"Dia de la familia","value":"\"Dia de la familia\""},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP Hoy","value":"\"Por favor cargarlas en SAP Hoy\""}]},{"id":"13349615997","name":"Angela Cartagena","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Alejandra Arias - alejandra.arias@ibm.com","value":"\"Alejandra Arias - alejandra.arias@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Cumpleaños","value":"{\"index\":0,\"post_id\":null,\"changed_at\":\"2026-10-21T18:10:51.431Z\"}"},{"id":"color_mm7g7naz","text":"CENTRO-SUR","value":"{\"index\":2}"},{"id":"date4","text":"2026-10-21","value":"{\"date\":\"2026-10-21\"}"},{"id":"timerange_mm7gjxra","text":"2026-12-18 - 2026-12-18","value":"{\"to\":\"2026-12-18\",\"from\":\"2026-12-18\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-30T17:44:32.083Z\"}"},{"id":"text_mm7g4np1","text":"Cumpleaños","value":"\"Cumpleaños\""},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP Hoy","value":"\"Por favor cargarlas en SAP Hoy\""}]},{"id":"13352003329","name":"Valentina Olarte","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Haimer Alexander Herrera Holguin - alexander.herrera@ibm.com","value":"\"Haimer Alexander Herrera Holguin - alexander.herrera@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"PACIFICO","value":"{\"index\":0}"},{"id":"date4","text":"2026-11-19","value":"{\"date\":\"2026-11-19\",\"changed_at\":\"2026-10-28T17:17:05.253Z\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-20 - 2026-11-20","value":"{\"to\":\"2026-11-20\",\"from\":\"2026-11-20\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-30T17:44:33.780Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP Hoy","value":"\"Por favor cargarlas en SAP Hoy\""}]},{"id":"13416950724","name":"Adolfo Mario Méndez Meza","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Andrea Ospina - Andrea.Ospina@ibm.com","value":"\"Andrea Ospina - Andrea.Ospina@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"PACIFICO","value":"{\"index\":0}"},{"id":"date4","text":"2026-10-29","value":"{\"date\":\"2026-10-29\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-17 - 2026-11-17","value":"{\"to\":\"2026-11-17\",\"from\":\"2026-11-17\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-30T17:44:35.698Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"","value":null}]},{"id":"13459868842","name":"Jesus Perez","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Paola Cagua","value":"\"Paola Cagua\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"PACIFICO","value":"{\"index\":0}"},{"id":"date4","text":"2026-11-11","value":"{\"date\":\"2026-11-11\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-11 - 2026-11-11","value":"{\"to\":\"2026-11-11\",\"from\":\"2026-11-11\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-11-04T23:38:58.343Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Por favor cargar en SAP Hoy","value":"\"Por favor cargar en SAP Hoy\""}]},{"id":"13430734594","name":"DANIEL STEVEN PEREZ QUNCHE","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"ALEXANDER HERRA, YEIMY GARZON - alexander.herrera@ibm.com","value":"\"ALEXANDER HERRA, YEIMY GARZON - alexander.herrera@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"PACIFICO","value":"{\"index\":0}"},{"id":"date4","text":"2026-10-30","value":"{\"date\":\"2026-10-30\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-17 - 2026-11-17","value":"{\"to\":\"2026-11-17\",\"from\":\"2026-11-17\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-11-04T23:39:13.010Z\"}"},{"id":"text_mm7g4np1","text":"Se solicita día de familia","value":"\"Se solicita día de familia\""},{"id":"text_mm821rme","text":"Por favor cargar en SAP Hoy","value":"\"Por favor cargar en SAP Hoy\""}]},{"id":"13127255090","name":"Item 1","group":{"id":"group_mm7gvhq3","title":"Rechazadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"","value":null},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":null,"value":null},{"id":"color_mm7g7naz","text":"","value":null},{"id":"date4","text":"2025-09-17","value":"{\"date\":\"2025-09-17\",\"icon\":null,\"changed_at\":\"2025-09-16T07:52:16.028Z\"}"},{"id":"timerange_mm7gjxra","text":"","value":null},{"id":"numeric_mm7gf0nh","text":"","value":null},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":null,"value":null},{"id":"color_mm7gg2a7","text":null,"value":null},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"","value":null}]},{"id":"13127261991","name":"Item 1","group":{"id":"group_mm7gw9qw","title":"Finalizadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"","value":null},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":null,"value":null},{"id":"color_mm7g7naz","text":"","value":null},{"id":"date4","text":"2025-09-17","value":"{\"date\":\"2025-09-17\",\"icon\":null,\"changed_at\":\"2025-09-16T07:52:16.028Z\"}"},{"id":"timerange_mm7gjxra","text":"","value":null},{"id":"numeric_mm7gf0nh","text":"","value":null},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":null,"value":null},{"id":"color_mm7gg2a7","text":null,"value":null},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"","value":null}]},{"id":"13210139652","name":"Víctor Hugo Suárez Ardila","group":{"id":"group_mm7gw9qw","title":"Finalizadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Jesus Alberto Pérez - jesusa.perezh@ext.cemex.com","value":"\"Jesus Alberto Pérez - jesusa.perezh@ext.cemex.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Feridado Disfrutado","value":"{\"index\":6}"},{"id":"color_mm7g7naz","text":"CENTRO-SUR","value":"{\"index\":2}"},{"id":"date4","text":"2026-10-05","value":"{\"date\":\"2026-10-05\"}"},{"id":"timerange_mm7gjxra","text":"2026-10-12 - 2026-10-12","value":"{\"to\":\"2026-10-12\",\"from\":\"2026-10-12\",\"changed_at\":\"2026-10-05T18:12:38.651Z\",\"visualization_type\":\"milestone\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-12T22:22:44.152Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Ok carga en SAP","value":"\"Ok carga en SAP\""}]},{"id":"13210170174","name":"Víctor Hugo Suárez Ardila","group":{"id":"group_mm7gw9qw","title":"Finalizadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Jesus Alberto Pérez - jesusa.perezh@ext.cemex.com","value":"\"Jesus Alberto Pérez - jesusa.perezh@ext.cemex.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Vacaciones","value":"{\"index\":1}"},{"id":"color_mm7g7naz","text":"CENTRO-SUR","value":"{\"index\":2}"},{"id":"date4","text":"2026-10-05","value":"{\"date\":\"2026-10-05\"}"},{"id":"timerange_mm7gjxra","text":"2026-10-13 - 2026-10-22","value":"{\"to\":\"2026-10-22\",\"from\":\"2026-10-13\"}"},{"id":"numeric_mm7gf0nh","text":"8","value":"\"8\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-12T22:23:02.655Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Ok carga en SAP","value":"\"Ok carga en SAP\""}]},{"id":"13209607288","name":"JULIETH CALDAS","group":{"id":"group_mm7gw9qw","title":"Finalizadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"PAOLA CAGUA - paola.cagua@ibm.com","value":"\"PAOLA CAGUA - paola.cagua@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"NOR-PAC","value":"{\"index\":3}"},{"id":"date4","text":"2026-10-05","value":"{\"date\":\"2026-10-05\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-02 - 2026-11-02","value":"{\"to\":\"2026-11-02\",\"from\":\"2026-11-02\",\"changed_at\":\"2026-10-05T17:38:46.263Z\",\"visualization_type\":null}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-12T22:38:17.924Z\"}"},{"id":"text_mm7g4np1","text":"Se solicita día de familia","value":"\"Se solicita día de familia\""},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP","value":"\"Por favor cargarlas en SAP\""}]},{"id":"13444973022","name":"JOSHUA MANRIQUE CORTÉS","group":{"id":"group_mm7gw9qw","title":"Finalizadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"CINDY MUÑOZ - cindy.munoz@ext.cemex.com","value":"\"CINDY MUÑOZ - cindy.munoz@ext.cemex.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"NORESTE","value":"{\"index\":1}"},{"id":"date4","text":"2026-11-02","value":"{\"date\":\"2026-11-02\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-04 - 2026-11-04","value":"{\"to\":\"2026-11-04\",\"from\":\"2026-11-04\",\"changed_at\":\"2026-11-02T22:26:01.367Z\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"En revisión","value":"{\"index\":0}"},{"id":"text_mm7g4np1","text":"Perdón el momento de la solicitud, me confirmaron el domingo la programación de unos examenes para mi mamá que requieres sedación y tiene que ir con acompañante","value":"\"Perdón el momento de la solicitud, me confirmaron el domingo la programación de unos examenes para mi mamá que requieres sedación y tiene que ir con acompañante\""},{"id":"text_mm821rme","text":"","value":null}]},{"id":"13218012570","name":"Karen Tatiana Aldana Veloza","group":{"id":"group_mm7gw9qw","title":"Finalizadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Yeimy Carolina Garzon - carolina.garzon@ibm.com","value":"\"Yeimy Carolina Garzon - carolina.garzon@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"PACIFICO","value":"{\"index\":0}"},{"id":"date4","text":"2026-10-06","value":"{\"date\":\"2026-10-06\",\"changed_at\":\"2026-10-06T14:29:49.315Z\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-05 - 2026-11-05","value":"{\"to\":\"2026-11-05\",\"from\":\"2026-11-05\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-12T22:44:32.292Z\"}"},{"id":"text_mm7g4np1","text":"Día de familia","value":"\"Día de familia\""},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP","value":"\"Por favor cargarlas en SAP\""}]}]}};
-var __STAMP = "10/11/26, 6:05 p.m.";
-var __RO = 'Solo lectura: esta pagina no guarda cambios en Monday.';
+var __STAMP = "10/11/26, 6:16 p.m.";
+var __NOKEY = 'Conecta tu clave API (boton \uD83D\uDD11 abajo a la izquierda) para guardar cambios en Monday.';
 var __TK_KEY = 'monday_api_key';
+var __USER_KEY = 'monday_user';
 var __state = 'snap'; // snap | live | offline | badkey
 
 function __tok() { try { return sessionStorage.getItem(__TK_KEY) || ''; } catch (e) { return ''; } }
+function __clearTok() { try { sessionStorage.removeItem(__TK_KEY); sessionStorage.removeItem(__USER_KEY); } catch (e) {} }
 function __roToast(m) { try { showToast(m,false); } catch (e) { alert(m); } }
 
 function __statusText() {
@@ -70,6 +72,13 @@ function __snapAnswer(query) {
   return { boards: [{ items_page: { cursor: null, items: items } }] };
 }
 
+function __gqlError(j) {
+  var msg = j.errors.map(function (x) { return x.message; }).join('; ');
+  var e = new Error(msg);
+  if (/not authenticated|unauthori[sz]ed|invalid.*token/i.test(msg)) e.auth = true;
+  return e;
+}
+
 async function __liveQuery(query, token) {
   var r = await fetch('https://api.monday.com/v2', {
     method: 'POST',
@@ -78,32 +87,67 @@ async function __liveQuery(query, token) {
   });
   var j = {};
   try { j = await r.json(); } catch (e) {}
-  if (r.status === 401 || r.status === 403) { var a = new Error('Clave API no valida'); a.auth = true; throw a; }
-  if (j.errors && j.errors.length) {
-    var msg = j.errors.map(function (x) { return x.message; }).join('; ');
-    var e2 = new Error(msg);
-    if (/not authenticated|unauthori[sz]ed|invalid.*token/i.test(msg)) e2.auth = true;
-    throw e2;
-  }
+  if (r.status === 401 || r.status === 403) { var a = new Error('Clave API no valida o sin permisos'); a.auth = true; throw a; }
+  if (j.errors && j.errors.length) throw __gqlError(j);
   if (!r.ok) throw new Error('Monday HTTP ' + r.status);
   return j.data;
 }
 
 async function mq(query) {
   query = String(query);
-  if (/^\s*mutation/i.test(query)) throw new Error(__RO);
   var t = __tok();
-  if (t) {
+  if (/^\s*mutation/i.test(query)) {
+    if (!t) throw new Error(__NOKEY);
     try { var d = await __liveQuery(query, t); __setState('live'); return d; }
     catch (e) {
-      if (e.auth) { try { sessionStorage.removeItem(__TK_KEY); } catch (x) {} __setState('badkey'); }
+      if (e.auth) { __clearTok(); __setState('badkey'); throw new Error('Clave API no valida o sin permisos. No se guardo el cambio.'); }
+      if (e instanceof TypeError) { __setState('offline'); throw new Error('Sin conexion con Monday. No se guardo el cambio.'); }
+      throw e;
+    }
+  }
+  if (t) {
+    try { var r = await __liveQuery(query, t); __setState('live'); return r; }
+    catch (e) {
+      if (e.auth) { __clearTok(); __setState('badkey'); }
       else if (e instanceof TypeError) { __setState('offline'); }
       else { throw e; }
     }
   }
   return __snapAnswer(query);
 }
-async function mup() { throw new Error(__RO); }
+
+async function mup(itemId, columnId, file) {
+  var t = __tok();
+  if (!t) throw new Error(__NOKEY);
+  if (!/^\d+$/.test(String(itemId)) || !/^[A-Za-z0-9_]+$/.test(String(columnId))) throw new Error('Datos de archivo invalidos');
+  var fd = new FormData();
+  fd.append('query', 'mutation ($file: File!) { add_file_to_column(item_id: ' + itemId + ', column_id: "' + columnId + '", file: $file) { id } }');
+  fd.append('variables[file]', file, file.name);
+  var r = await fetch('https://api.monday.com/v2', { method: 'POST', headers: { 'Authorization': t, 'API-Version': '2024-01' }, body: fd });
+  var j = {};
+  try { j = await r.json(); } catch (e) {}
+  if (j.errors && j.errors.length) throw __gqlError(j);
+  if (!r.ok) throw new Error('Monday HTTP ' + r.status);
+  return { success: true };
+}
+
+/* ---- Identidad: quien es el dueno de la clave (para las acciones de lider) ---- */
+async function __me() {
+  var n = '';
+  try { n = sessionStorage.getItem(__USER_KEY) || ''; } catch (e) {}
+  if (!n && __tok()) {
+    try { var d = await __liveQuery('{me{name}}', __tok()); n = d.me.name; sessionStorage.setItem(__USER_KEY, n); } catch (e) {}
+  }
+  return n;
+}
+function __norm(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+async function __leaderKey() {
+  var n = __norm(await __me());
+  if (n.indexOf('jesus') > -1 && n.indexOf('perez') > -1) return 'PEREZ';
+  if (n.indexOf('victor') > -1 && n.indexOf('suarez') > -1) return 'SUAREZ';
+  if (n.indexOf('anlli') > -1 && n.indexOf('varon') > -1) return 'VARON';
+  return '';
+}
 
 function __openApiModal() {
   var old = document.getElementById('__apiModal'); if (old) old.remove();
@@ -115,8 +159,9 @@ function __openApiModal() {
   box.style.cssText = 'background:#fff;color:#0f172a;border-radius:12px;padding:20px;width:min(420px,92vw);box-shadow:0 10px 40px rgba(0,0,0,.3)';
   box.innerHTML = '<div style="font-size:15px;font-weight:700;margin-bottom:6px">Conectar con Monday</div>' +
     '<div style="font-size:12px;color:#475569;line-height:1.5;margin-bottom:10px">Pega tu clave API personal de Monday ' +
-    '(avatar \u2192 Developers \u2192 My access tokens). Se guarda solo en esta pesta\u00f1a del navegador, ' +
-    'se env\u00eda \u00fanicamente a api.monday.com y la p\u00e1gina se actualiza sola cada 45 s. Solo lectura.</div>';
+    '(avatar \u2192 Developers \u2192 My access tokens). Se guarda solo en esta pesta\u00f1a del navegador y ' +
+    'se env\u00eda \u00fanicamente a api.monday.com. Podr\u00e1s ver y guardar cambios seg\u00fan tus permisos en Monday; ' +
+    'la p\u00e1gina se actualiza sola cada 45 s.</div>';
   var inp = document.createElement('input');
   inp.type = 'password'; inp.placeholder = 'Clave API de Monday'; inp.autocomplete = 'off';
   inp.style.cssText = 'width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px';
@@ -134,7 +179,7 @@ function __openApiModal() {
   bCancel.onclick = function () { ov.remove(); };
   if (connected) {
     var bOff = btn('Desconectar', '#fee2e2', '#991b1b');
-    bOff.onclick = function () { try { sessionStorage.removeItem(__TK_KEY); } catch (e) {} location.reload(); };
+    bOff.onclick = function () { __clearTok(); location.reload(); };
     row.appendChild(bOff);
   }
   row.appendChild(bCancel); row.appendChild(bOk);
@@ -143,8 +188,9 @@ function __openApiModal() {
     if (!t) { err.textContent = 'Escribe tu clave API.'; return; }
     bOk.disabled = true; bOk.textContent = 'Verificando\u2026'; err.textContent = '';
     try {
-      await __liveQuery('{me{name}}', t);
+      var d = await __liveQuery('{me{name}}', t);
       sessionStorage.setItem(__TK_KEY, t);
+      sessionStorage.setItem(__USER_KEY, d.me.name);
       location.reload();
     } catch (e) {
       bOk.disabled = false; bOk.textContent = 'Conectar';
@@ -166,8 +212,11 @@ document.addEventListener('DOMContentLoaded', function () {
   document.body.appendChild(p);
   if (__tok()) {
     __state = 'live';
-    __liveQuery('{me{name}}', __tok()).then(function () { __setState('live'); }).catch(function (e) {
-      if (e.auth) { try { sessionStorage.removeItem(__TK_KEY); } catch (x) {} __setState('badkey'); } else { __setState('offline'); }
+    __liveQuery('{me{name}}', __tok()).then(function (d) {
+      try { sessionStorage.setItem(__USER_KEY, d.me.name); } catch (x) {}
+      __setState('live');
+    }).catch(function (e) {
+      if (e.auth) { __clearTok(); __setState('badkey'); } else { __setState('offline'); }
     });
   }
   __setState(__state);
@@ -175,8 +224,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
 </script>
 <script>
-function reqAprPwd(){__roToast(__RO);}
-async function confirmAprPwd(){__roToast(__RO);}
+async function reqAprPwd(action){
+  if(!__tok()){__roToast("Conecta tu clave API (boton de abajo a la izquierda) para continuar.");return;}
+  if((await __leaderKey())!=="VARON"){__roToast("Solo Anlli Liliana Varon puede aprobar o rechazar.");return;}
+  pendingAprAction=action;
+  document.getElementById("aprPwdInput").value="";
+  await __confirmAprPwd_live();
+}
+async function confirmAprPwd(){}
 </script>
 
 
@@ -808,7 +863,7 @@ async function handleCreateItem(ev) {
   try {
     const colJson = JSON.stringify(JSON.stringify(cols));
     const mutation = 'mutation { create_item(board_id:'+BOARD_ID+', item_name:"'+adcarName.replace(/"/g,'')+'", column_values:'+colJson+') { id name } }';
-    await mq(mutation);
+    const __cr = await mq(mutation); const itemId = __cr.create_item.id;
     setProgress(70);
     if(ausFiles.length) {
       for(const f of ausFiles) {
@@ -817,7 +872,7 @@ async function handleCreateItem(ev) {
         fd.append('itemId', itemId);
         fd.append('columnId', 'file_mm7g6w04');
         fd.append('file', f);
-        await fetch('#static', {method:'POST',body:fd});
+        await mup(itemId, 'file_mm7g6w04', f);
       }
     }
     setProgress(100);
