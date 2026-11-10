@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IBM | Portal de Gestión de Tiempo – Construcción 2026</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #f4f7ff;
+      --surface:   #ffffff;
+      --border:    #dbe4f8;
+      --accent:    #0f62fe;
+      --glow:      rgba(15,98,254,0.18);
+      --purple:    #7c5cd8;
+      --teal:      #0891b2;
+      --text:      #1e2a45;
+      --muted:     #6b7fa3;
+      --header-bg: #ffffff;
+      --p-blue:    #e8f0fe;
+      --p-green:   #d1fae5;
+      --p-yellow:  #fef3c7;
+      --p-purple:  #ede9fe;
+      --p-teal:    #e0f2fe;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ── Dot pattern background ───────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(15,98,254,.07) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── No scan-line on light theme ──────────────────────── */
+    body::after {
+      display: none;
+    }
+
+    /* ── Floating particles ───────────────────────────────── */
+    .particle {
+      position: fixed;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.18;
+      pointer-events: none;
+      z-index: 2;
+      animation: float linear infinite;
+    }
+    .p1 { width:5px;  height:5px;  left:8%;   top:20%; animation-duration:14s; animation-delay:0s;   }
+    .p2 { width:4px;  height:4px;  left:19%;  top:60%; animation-duration:18s; animation-delay:2s;   }
+    .p3 { width:6px;  height:6px;  left:52%;  top:80%; animation-duration:12s; animation-delay:1s;   }
+    .p4 { width:3px;  height:3px;  left:73%;  top:35%; animation-duration:20s; animation-delay:4s;   }
+    .p5 { width:5px;  height:5px;  left:85%;  top:70%; animation-duration:16s; animation-delay:0.5s; }
+    .p6 { width:4px;  height:4px;  left:40%;  top:15%; animation-duration:15s; animation-delay:3s;   }
+    .p7 { width:3px;  height:3px;  left:64%;  top:55%; animation-duration:22s; animation-delay:1.5s; }
+    .p8 { width:5px;  height:5px;  left:28%;  top:90%; animation-duration:17s; animation-delay:2.5s; }
+
+    @keyframes float {
+      0%   { transform: translateY(0)   translateX(0); opacity: 0.55; }
+      25%  { transform: translateY(-28px) translateX(12px);  opacity: 0.8; }
+      50%  { transform: translateY(-14px) translateX(-8px);  opacity: 0.45; }
+      75%  { transform: translateY(-36px) translateX(6px);   opacity: 0.7; }
+      100% { transform: translateY(0)   translateX(0); opacity: 0.55; }
+    }
+
+    /* ── Wrapper ──────────────────────────────────────────── */
+    .page-wrapper { position: relative; z-index: 3; }
+
+    /* ── Header ───────────────────────────────────────────── */
+    header {
+      position: sticky;
+      top: 0;
+      height: 60px;
+      background: var(--header-bg);
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      z-index: 100;
+      box-shadow: 0 2px 16px rgba(15,98,254,0.07);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-divider {
+      width: 1px;
+      height: 28px;
+      background: var(--border);
+    }
+
+    .header-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    .btn-monday {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 18px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: box-shadow 0.25s, transform 0.2s, background 0.2s;
+    }
+    .btn-monday:hover {
+      background: #0353e9;
+      box-shadow: 0 4px 18px rgba(15,98,254,0.28);
+      transform: translateY(-1px);
+    }
+    .btn-monday svg { flex-shrink: 0; }
+
+    /* ── Hero ─────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      width: 100%;
+      padding: 80px 48px 72px;
+      background: linear-gradient(160deg, #eef3ff 0%, #f4f7ff 60%, #eaf0ff 100%);
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+      animation: heroFadeIn 0.9s ease both;
+    }
+
+    @keyframes heroFadeIn {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Decorative radial grid lines */
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .hero-grid::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 200%;
+      height: 200%;
+      transform: translate(-50%, -50%);
+      background:
+        repeating-linear-gradient(0deg,   transparent, transparent 59px, rgba(15,98,254,0.06) 60px),
+        repeating-linear-gradient(90deg,  transparent, transparent 59px, rgba(15,98,254,0.06) 60px);
+    }
+    .hero-grid::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 30%, rgba(244,247,255,0.6) 100%);
+    }
+
+    /* Moving scan line */
+    .hero-scanline {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(15,98,254,0.25), transparent);
+      animation: scanMove 6s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes scanMove {
+      from { top: -2px; opacity: 0.8; }
+      40%  { opacity: 1; }
+      to   { top: 100%; opacity: 0; }
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 760px;
+    }
+
+    .hero-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+
+    .hero-title {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 700;
+      line-height: 1.18;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+    .hero-title span {
+      color: var(--accent);
+    }
+
+    .hero-subtitle {
+      font-size: 16px;
+      font-weight: 300;
+      color: var(--muted);
+      max-width: 540px;
+      line-height: 1.65;
+      margin-bottom: 32px;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      background: var(--p-blue);
+      border: 1px solid rgba(15,98,254,0.25);
+      color: #1e4db7;
+    }
+    .badge.teal {
+      background: var(--p-teal);
+      border-color: rgba(8,145,178,0.3);
+      color: #0369a1;
+    }
+
+    .dot-live {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22d672;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .dot-live::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 2px solid rgba(34,214,114,0.45);
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%   { transform: scale(0.8); opacity: 1; }
+      70%  { transform: scale(1.8); opacity: 0; }
+      100% { transform: scale(0.8); opacity: 0; }
+    }
+
+    /* ── Main content ─────────────────────────────────────── */
+    main {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 56px 32px 80px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 24px;
+    }
+
+    /* ── Cards grid ───────────────────────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 64px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 16px rgba(15,98,254,0.07);
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+      animation: cardIn 0.6s ease both;
+      display: flex;
+      flex-direction: column;
+    }
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.3s; }
+    .card:nth-child(4) { animation-delay: 0.4s; }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(15,98,254,0.38);
+      box-shadow: 0 8px 32px rgba(15,98,254,0.14);
+    }
+    .card.purple:hover {
+      border-color: rgba(124,92,216,0.4);
+      box-shadow: 0 8px 32px rgba(124,92,216,0.15);
+    }
+    .card.teal-card:hover {
+      border-color: rgba(8,145,178,0.4);
+      box-shadow: 0 8px 32px rgba(8,145,178,0.14);
+    }
+    .card.green-card:hover {
+      border-color: rgba(5,150,105,0.4);
+      box-shadow: 0 8px 32px rgba(5,150,105,0.14);
+    }
+
+    .card-accent-line {
+      height: 4px;
+      width: 100%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+    .card.purple .card-accent-line    { background: var(--purple); }
+    .card.teal-card .card-accent-line { background: var(--teal); }
+    .card.green-card .card-accent-line{ background: #059669; }
+
+    .card-body {
+      padding: 28px 28px 24px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .card-header-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .icon-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--p-blue);
+      border: 1px solid rgba(15,98,254,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .card.green-card .icon-circle {
+      background: #d1fae5;
+      border-color: #a7f3d0;
+    }
+    .card.purple .icon-circle {
+      background: var(--p-purple);
+      border-color: rgba(124,92,216,0.2);
+    }
+    .card.teal-card .icon-circle {
+      background: var(--p-teal);
+      border-color: rgba(8,145,178,0.2);
+    }
+    .icon-circle svg { width: 22px; height: 22px; }
+
+    .card-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 10px;
+      background: var(--p-blue);
+      border: 1px solid rgba(15,98,254,0.22);
+      color: #1e4db7;
+    }
+    .card.green-card .card-badge {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .card.purple .card-badge {
+      background: var(--p-purple);
+      border-color: rgba(124,92,216,0.22);
+      color: #5b21b6;
+    }
+    .card.teal-card .card-badge {
+      background: var(--p-teal);
+      border-color: rgba(8,145,178,0.22);
+      color: #0369a1;
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 18px;
+      line-height: 1.6;
+    }
+
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex: 1;
+    }
+    .feature-list li {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .feature-list li::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+    .card.purple .feature-list li::before    { background: var(--purple); }
+    .card.teal-card .feature-list li::before { background: var(--teal); }
+    .card.green-card .feature-list li::before{ background: #059669; }
+
+    .card-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 11px 20px;
+      border-radius: 10px;
+      border: 1px solid rgba(15,98,254,0.3);
+      background: var(--p-blue);
+      color: #1e4db7;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.25s, box-shadow 0.25s, color 0.2s, transform 0.2s;
+    }
+    .card-cta:hover {
+      background: var(--accent);
+      box-shadow: 0 4px 18px rgba(15,98,254,0.28);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+    .card.purple .card-cta {
+      border-color: rgba(124,92,216,0.3);
+      background: var(--p-purple);
+      color: #5b21b6;
+    }
+    .card.purple .card-cta:hover {
+      background: var(--purple);
+      box-shadow: 0 4px 18px rgba(124,92,216,0.3);
+      color: #fff;
+    }
+    .card.teal-card .card-cta {
+      border-color: rgba(8,145,178,0.3);
+      background: var(--p-teal);
+      color: #0369a1;
+    }
+    .card.teal-card .card-cta:hover {
+      background: var(--teal);
+      box-shadow: 0 4px 18px rgba(8,145,178,0.3);
+      color: #fff;
+    }
+    .card.green-card .card-cta {
+      border-color: rgba(5,150,105,0.3);
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .card.green-card .card-cta:hover {
+      background: #059669;
+      box-shadow: 0 4px 18px rgba(5,150,105,0.3);
+      color: #fff;
+    }
+
+    /* ── Quick links ──────────────────────────────────────── */
+    .quick-links-section { margin-bottom: 48px; }
+
+    .quick-links-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .qlink {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: border-color 0.25s, color 0.25s, box-shadow 0.25s, background 0.25s;
+    }
+    .qlink:hover {
+      border-color: rgba(15,98,254,0.4);
+      color: var(--accent);
+      background: var(--p-blue);
+      box-shadow: 0 2px 12px rgba(15,98,254,0.12);
+    }
+    .qlink-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.7;
+      flex-shrink: 0;
+    }
+
+    /* ── Footer ───────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      padding: 24px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      position: relative;
+      z-index: 3;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .footer-text {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .footer-right {
+      font-size: 11px;
+      color: var(--muted);
+      opacity: 0.7;
+    }
+
+    /* ── Responsive ───────────────────────────────────────── */
+    @media (max-width: 680px) {
+      header { padding: 0 18px; }
+      .hero { padding: 52px 24px 52px; }
+      main { padding: 36px 18px 56px; }
+      .cards-grid { grid-template-columns: 1fr; }
+      footer { padding: 20px 18px; flex-direction: column; align-items: flex-start; }
+      .header-title { display: none; }
+    }
+
+    /* ── Scrollbar ─────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #f0f4ff; }
+    ::-webkit-scrollbar-thumb { background: rgba(15,98,254,.25); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(15,98,254,.5); }
+  </style>
+</head>
+<body>
+
+  <!-- Floating particles -->
+  <div class="particle p1"></div>
+  <div class="particle p2"></div>
+  <div class="particle p3"></div>
+  <div class="particle p4"></div>
+  <div class="particle p5"></div>
+  <div class="particle p6"></div>
+  <div class="particle p7"></div>
+  <div class="particle p8"></div>
+
+  <div class="page-wrapper">
+
+    <!-- ── Header ─────────────────────────────────────────── -->
+    <header>
+      <div class="header-left">
+        <!-- IBM Logo — letter-shaped clipPaths filled with 8 horizontal blue stripes -->
+        <svg width="88" height="32" viewBox="0 0 176 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="IBM">
+          <defs>
+            <!-- Letter I: top/bottom serifs full-width, middle stem narrower -->
+            <clipPath id="ibm-I">
+              <rect x="0" y="0"  width="32" height="10"/>
+              <rect x="8" y="10" width="16" height="44"/>
+              <rect x="0" y="54" width="32" height="10"/>
+            </clipPath>
+            <!-- Letter B: left stem + two bumps on right -->
+            <clipPath id="ibm-B">
+              <rect x="40" y="0"  width="12" height="64"/>
+              <rect x="52" y="0"  width="18" height="10"/>
+              <path d="M52 10 Q76 10 76 22 Q76 32 52 32 L52 10Z"/>
+              <rect x="52" y="32" width="18" height="10"/>
+              <path d="M52 42 Q78 42 78 54 Q78 64 52 64 L52 42Z"/>
+              <rect x="52" y="54" width="18" height="10"/>
+            </clipPath>
+            <!-- Letter M: two outer pillars + V notch in middle -->
+            <clipPath id="ibm-M">
+              <rect x="88" y="0"  width="14" height="64"/>
+              <rect x="158" y="0" width="14" height="64"/>
+              <polygon points="102,0 130,40 158,0"/>
+              <polygon points="102,64 130,40 158,64"/>
+            </clipPath>
+          </defs>
+          <!-- Stripes through I -->
+          <g clip-path="url(#ibm-I)">
+            <rect x="0" y="0"  width="32" height="7"  fill="#0f62fe"/>
+            <rect x="0" y="8"  width="32" height="7"  fill="#0f62fe"/>
+            <rect x="0" y="16" width="32" height="7"  fill="#0f62fe"/>
+            <rect x="0" y="24" width="32" height="7"  fill="#0f62fe"/>
+            <rect x="0" y="32" width="32" height="7"  fill="#0f62fe"/>
+            <rect x="0" y="40" width="32" height="7"  fill="#0f62fe"/>
+            <rect x="0" y="48" width="32" height="7"  fill="#0f62fe"/>
+            <rect x="0" y="56" width="32" height="7"  fill="#0f62fe"/>
+          </g>
+          <!-- Stripes through B -->
+          <g clip-path="url(#ibm-B)">
+            <rect x="40" y="0"  width="40" height="7"  fill="#0f62fe"/>
+            <rect x="40" y="8"  width="40" height="7"  fill="#0f62fe"/>
+            <rect x="40" y="16" width="40" height="7"  fill="#0f62fe"/>
+            <rect x="40" y="24" width="40" height="7"  fill="#0f62fe"/>
+            <rect x="40" y="32" width="40" height="7"  fill="#0f62fe"/>
+            <rect x="40" y="40" width="40" height="7"  fill="#0f62fe"/>
+            <rect x="40" y="48" width="40" height="7"  fill="#0f62fe"/>
+            <rect x="40" y="56" width="40" height="7"  fill="#0f62fe"/>
+          </g>
+          <!-- Stripes through M -->
+          <g clip-path="url(#ibm-M)">
+            <rect x="88" y="0"  width="84" height="7"  fill="#0f62fe"/>
+            <rect x="88" y="8"  width="84" height="7"  fill="#0f62fe"/>
+            <rect x="88" y="16" width="84" height="7"  fill="#0f62fe"/>
+            <rect x="88" y="24" width="84" height="7"  fill="#0f62fe"/>
+            <rect x="88" y="32" width="84" height="7"  fill="#0f62fe"/>
+            <rect x="88" y="40" width="84" height="7"  fill="#0f62fe"/>
+            <rect x="88" y="48" width="84" height="7"  fill="#0f62fe"/>
+            <rect x="88" y="56" width="84" height="7"  fill="#0f62fe"/>
+          </g>
+        </svg>
+        <div class="header-divider"></div>
+        <span class="header-title">Portal de Gestión de Equipo</span>
+      </div>
+      <a href="https://monday.com/boards/18432741374" target="_blank" rel="noopener" class="btn-monday">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Abrir en Monday
+      </a>
+    </header>
+
+    <!-- ── Hero ───────────────────────────────────────────── -->
+    <section class="hero">
+      <div class="hero-grid"></div>
+      <div class="hero-scanline"></div>
+      <div class="hero-content">
+        <p class="hero-eyebrow">IBM · Construcción V2 · 2025</p>
+        <h1 class="hero-title">Portal de <span>Gestión de Tiempo</span><br />Construcción 2026</h1>
+        <p class="hero-subtitle">Panel de control unificado para confirmación de actualizaciones de tiempo, solicitudes de horas extras y gestión de ausencias del equipo.</p>
+        <div class="badge-row">
+          <span class="badge">
+            <span class="dot-live"></span>
+            Board live
+          </span>
+          <span class="badge teal">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            GitHub Pages active
+          </span>
+          <span class="badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Secure · IBM w3
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Main ───────────────────────────────────────────── -->
+    <main>
+
+      <!-- Cards -->
+      <p class="section-label">Módulos principales</p>
+      <div class="cards-grid">
+
+        <!-- Card 1: Actualizaciones -->
+        <div class="card">
+          <div class="card-accent-line"></div>
+          <div class="card-body">
+            <div class="card-header-row">
+              <div class="icon-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#0f62fe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
+              </div>
+              <span class="card-badge">Actualizaciones</span>
+            </div>
+            <h2 class="card-title">Confirmación de Actualizaciones</h2>
+            <p class="card-desc">Centraliza la confirmación y seguimiento de actualizaciones del equipo con trazabilidad completa.</p>
+            <ul class="feature-list">
+              <li>Registro de cambios en tiempo real</li>
+              <li>Validación por supervisor</li>
+              <li>Historial de versiones auditado</li>
+              <li>Notificaciones automáticas</li>
+            </ul>
+            <a href="dashboard_actualizaciones.html#slide1" class="card-cta">
+              Acceder al módulo
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Card 2: Horas Extras -->
+        <div class="card purple">
+          <div class="card-accent-line"></div>
+          <div class="card-body">
+            <div class="card-header-row">
+              <div class="icon-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#7c5cd8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+              <span class="card-badge">Horas Extras</span>
+            </div>
+            <h2 class="card-title">Solicitud de Horas Extras</h2>
+            <p class="card-desc">Gestiona solicitudes de horas adicionales con flujo de aprobación estructurado y cumplimiento normativo.</p>
+            <ul class="feature-list">
+              <li>Solicitud en línea 24/7</li>
+              <li>Flujo de aprobación multi-nivel</li>
+              <li>Cálculo automático de compensación</li>
+              <li>Reportes de cumplimiento</li>
+            </ul>
+            <a href="dashboard_actualizaciones.html#slide2" class="card-cta">
+              Acceder al módulo
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Card 3: Ausencias -->
+        <div class="card teal-card">
+          <div class="card-accent-line"></div>
+          <div class="card-body">
+            <div class="card-header-row">
+              <div class="icon-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                  <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>
+                </svg>
+              </div>
+              <span class="card-badge">Ausencias</span>
+            </div>
+            <h2 class="card-title">Gestión de Ausencias</h2>
+            <p class="card-desc">Administra vacaciones, permisos y ausencias del equipo con visibilidad completa del calendario.</p>
+            <ul class="feature-list">
+              <li>Calendario de ausencias unificado</li>
+              <li>Solicitud y aprobación integradas</li>
+              <li>Balance de días disponibles</li>
+              <li>Sincronización con Monday.com</li>
+            </ul>
+            <a href="dashboard_ausencias.html" class="card-cta">
+              Acceder al módulo
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Card 4: Modalidad de Trabajo -->
+        <div class="card green-card">
+          <div class="card-accent-line"></div>
+          <div class="card-body">
+            <div class="card-header-row">
+              <div class="icon-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="3" width="20" height="14" rx="2"/>
+                  <line x1="8" y1="21" x2="16" y2="21"/>
+                  <line x1="12" y1="17" x2="12" y2="21"/>
+                </svg>
+              </div>
+              <span class="card-badge">Modalidad</span>
+            </div>
+            <h2 class="card-title">Modalidad de Trabajo</h2>
+            <p class="card-desc">Registra y consulta la modalidad de trabajo semanal del equipo — presencial, remoto o híbrido — sincronizado con Monday.com.</p>
+            <ul class="feature-list">
+              <li>Vista en tiempo real del equipo</li>
+              <li>Registro y edición por semana</li>
+              <li>Distribución por modalidad</li>
+              <li>Sincronización con Monday.com</li>
+            </ul>
+            <a href="dashboard_actualizaciones.html#slide3" class="card-cta">
+              Acceder al módulo
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          </div>
+        </div>
+
+      </div><!-- /cards-grid -->
+
+      <!-- Quick links -->
+      <section class="quick-links-section">
+        <p class="section-label">Accesos rápidos</p>
+        <div class="quick-links-grid">
+
+          <a href="https://monday.com/boards/18432741374" target="_blank" rel="noopener" class="qlink">
+            <span class="qlink-dot"></span>
+            Monday · Board 18432741374
+          </a>
+
+          <a href="https://w3.ibm.com" target="_blank" rel="noopener" class="qlink">
+            <span class="qlink-dot" style="background:#7ab4ff"></span>
+            IBM Time Tracker · w3
+          </a>
+
+          <a href="https://performancemanager.successfactors.com" target="_blank" rel="noopener" class="qlink">
+            <span class="qlink-dot" style="background:#c4b0ff"></span>
+            Success Factors
+          </a>
+
+          <a href="https://github.com/AMC304-beep/DASHBOARD-CONSTRUCCI-N-V2" target="_blank" rel="noopener" class="qlink">
+            <span class="qlink-dot" style="background:#7de8f8"></span>
+            GitHub · DASHBOARD-CONSTRUCCIÓN-V2
+          </a>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ── Footer ─────────────────────────────────────────── -->
+    <footer>
+      <div class="footer-left">
+        <svg width="56" height="22" viewBox="0 0 176 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="IBM">
+          <defs>
+            <clipPath id="ibm-I-f"><rect x="0" y="0" width="32" height="10"/><rect x="8" y="10" width="16" height="44"/><rect x="0" y="54" width="32" height="10"/></clipPath>
+            <clipPath id="ibm-B-f"><rect x="40" y="0" width="12" height="64"/><rect x="52" y="0" width="18" height="10"/><path d="M52 10 Q76 10 76 22 Q76 32 52 32 L52 10Z"/><rect x="52" y="32" width="18" height="10"/><path d="M52 42 Q78 42 78 54 Q78 64 52 64 L52 42Z"/><rect x="52" y="54" width="18" height="10"/></clipPath>
+            <clipPath id="ibm-M-f"><rect x="88" y="0" width="14" height="64"/><rect x="158" y="0" width="14" height="64"/><polygon points="102,0 130,40 158,0"/><polygon points="102,64 130,40 158,64"/></clipPath>
+          </defs>
+          <g clip-path="url(#ibm-I-f)"><rect x="0" y="0" width="32" height="7" fill="#0f62fe"/><rect x="0" y="8" width="32" height="7" fill="#0f62fe"/><rect x="0" y="16" width="32" height="7" fill="#0f62fe"/><rect x="0" y="24" width="32" height="7" fill="#0f62fe"/><rect x="0" y="32" width="32" height="7" fill="#0f62fe"/><rect x="0" y="40" width="32" height="7" fill="#0f62fe"/><rect x="0" y="48" width="32" height="7" fill="#0f62fe"/><rect x="0" y="56" width="32" height="7" fill="#0f62fe"/></g>
+          <g clip-path="url(#ibm-B-f)"><rect x="40" y="0" width="40" height="7" fill="#0f62fe"/><rect x="40" y="8" width="40" height="7" fill="#0f62fe"/><rect x="40" y="16" width="40" height="7" fill="#0f62fe"/><rect x="40" y="24" width="40" height="7" fill="#0f62fe"/><rect x="40" y="32" width="40" height="7" fill="#0f62fe"/><rect x="40" y="40" width="40" height="7" fill="#0f62fe"/><rect x="40" y="48" width="40" height="7" fill="#0f62fe"/><rect x="40" y="56" width="40" height="7" fill="#0f62fe"/></g>
+          <g clip-path="url(#ibm-M-f)"><rect x="88" y="0" width="84" height="7" fill="#0f62fe"/><rect x="88" y="8" width="84" height="7" fill="#0f62fe"/><rect x="88" y="16" width="84" height="7" fill="#0f62fe"/><rect x="88" y="24" width="84" height="7" fill="#0f62fe"/><rect x="88" y="32" width="84" height="7" fill="#0f62fe"/><rect x="88" y="40" width="84" height="7" fill="#0f62fe"/><rect x="88" y="48" width="84" height="7" fill="#0f62fe"/><rect x="88" y="56" width="84" height="7" fill="#0f62fe"/></g>
+        </svg>
+        <span class="footer-text">Portal de Gestión de Equipo · IBM Construcción V2</span>
+      </div>
+      <span class="footer-right">© 2025 IBM Corporation. Todos los derechos reservados.</span>
+    </footer>
+
+  </div><!-- /page-wrapper -->
+</body>
+</html>

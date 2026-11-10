@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IBM - Gestion de Ausencias</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    :root{--bg:#f4f7ff;--border:#dbe4f8;--accent:#0f62fe;--text:#1e2a45;--muted:#6b7fa3;--success:#059669;}
+    *,*::before,*::after{box-sizing:border-box;}
+    body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .slide-enter{animation:fadeIn .3s ease;}
+    .sbadge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+    .fc .fc-button{background:#0f62fe!important;border-color:#0353e9!important;font-size:12px!important;padding:6px 14px!important;border-radius:6px!important;font-family:'IBM Plex Sans',sans-serif!important;font-weight:600!important;}
+    .fc .fc-button:hover{background:#0353e9!important;}
+    .fc-toolbar-title{font-size:1.1rem!important;font-weight:700!important;color:#1f2328!important;}
+    .fc-daygrid-event{border-radius:5px!important;padding:2px 6px!important;font-size:11px!important;font-weight:600!important;border:none!important;}
+    .fc-day-today{background:#eff6ff!important;}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:#0f62fe!important;box-shadow:0 0 0 3px rgba(15,98,254,.12)!important;}
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+<script>
+var __SNAP={"18432588237":{"columns":[{"id":"name","title":"Name","type":"name"},{"id":"subtasks_mm7q2bxz","title":"Subitems","type":"subtasks"},{"id":"text_mm7gxx4s","title":"Backup","type":"text"},{"id":"multiple_person_mm7gtypz","title":"Contacto","type":"people"},{"id":"status","title":"Motivo","type":"status"},{"id":"color_mm7g7naz","title":"Región","type":"status"},{"id":"date4","title":"Fecha de Solicitud","type":"date"},{"id":"timerange_mm7gjxra","title":"Cronograma","type":"timeline"},{"id":"numeric_mm7gf0nh","title":"Dias Ausencias","type":"numbers"},{"id":"file_mm7g6w04","title":"Soporte Ausencia","type":"file"},{"id":"color_mm7qmmkn","title":"Aprobante","type":"status"},{"id":"color_mm7gg2a7","title":"Estado Aprobación","type":"status"},{"id":"text_mm7g4np1","title":"Observaciones","type":"text"},{"id":"text_mm821rme","title":"Observaciones Manager","type":"text"}],"items":[{"id":"13127059480","name":"Item 1","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"","value":null},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":null,"value":null},{"id":"color_mm7g7naz","text":"","value":null},{"id":"date4","text":"2025-09-17","value":"{\"date\":\"2025-09-17\",\"icon\":null,\"changed_at\":\"2025-09-16T07:52:16.028Z\"}"},{"id":"timerange_mm7gjxra","text":"","value":null},{"id":"numeric_mm7gf0nh","text":"","value":null},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":null,"value":null},{"id":"color_mm7gg2a7","text":null,"value":null},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"","value":null}]},{"id":"13209647689","name":"JULIETH CALDAS","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"PAOLA CAGUA - paola.cagua@ibm.com","value":"\"PAOLA CAGUA - paola.cagua@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Vacaciones","value":"{\"index\":1}"},{"id":"color_mm7g7naz","text":"NOR-PAC","value":"{\"index\":3}"},{"id":"date4","text":"2026-10-05","value":"{\"date\":\"2026-10-05\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-03 - 2026-11-06","value":"{\"to\":\"2026-11-06\",\"from\":\"2026-11-03\"}"},{"id":"numeric_mm7gf0nh","text":"4","value":"\"4\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-12T22:38:23.044Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP","value":"\"Por favor cargarlas en SAP\""}]},{"id":"13256466706","name":"Yessica Pérez","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Francisco Rojas - Francisco.Javier.Rojas.Rojas@ibm.com","value":"\"Francisco Rojas - Francisco.Javier.Rojas.Rojas@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Vacaciones","value":"{\"index\":1}"},{"id":"color_mm7g7naz","text":"CENTRO-SUR","value":"{\"index\":2}"},{"id":"date4","text":"2026-10-10","value":"{\"date\":\"2026-10-10\"}"},{"id":"timerange_mm7gjxra","text":"2026-12-02 - 2026-12-09","value":"{\"to\":\"2026-12-09\",\"from\":\"2026-12-02\"}"},{"id":"numeric_mm7gf0nh","text":"6","value":"\"6\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-12T22:39:44.428Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP","value":"\"Por favor cargarlas en SAP\""}]},{"id":"13218058056","name":"Karen Tatiana Aldana Veloza","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Yeimy Carolina Garzon - carolina.garzon@ibm.com","value":"\"Yeimy Carolina Garzon - carolina.garzon@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Vacaciones","value":"{\"index\":1}"},{"id":"color_mm7g7naz","text":"PACIFICO","value":"{\"index\":0}"},{"id":"date4","text":"2026-10-06","value":"{\"date\":\"2026-10-06\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-06 - 2026-11-10","value":"{\"to\":\"2026-11-10\",\"from\":\"2026-11-06\"}"},{"id":"numeric_mm7gf0nh","text":"3","value":"\"3\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-12T22:44:35.866Z\"}"},{"id":"text_mm7g4np1","text":"Vacaciones","value":"\"Vacaciones\""},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP","value":"\"Por favor cargarlas en SAP\""}]},{"id":"13210109321","name":"Víctor Hugo Suárez Ardila","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Jesus Alberto Pérez - jesusa.perezh@ext.cemex.com","value":"\"Jesus Alberto Pérez - jesusa.perezh@ext.cemex.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Vacaciones","value":"{\"index\":1}"},{"id":"color_mm7g7naz","text":"CENTRO-SUR","value":"{\"index\":2}"},{"id":"date4","text":"2026-10-05","value":"{\"date\":\"2026-10-05\"}"},{"id":"timerange_mm7gjxra","text":"2026-10-09 - 2026-10-09","value":"{\"to\":\"2026-10-09\",\"from\":\"2026-10-09\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-12T22:45:22.499Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Ok carga en SAP","value":"\"Ok carga en SAP\""}]},{"id":"13269833165","name":"Daniel Sebastian Reina","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Brigitte Tatiana Rodriguez Gaona - brigitte.rodriguez@ext.cemex.com","value":"\"Brigitte Tatiana Rodriguez Gaona - brigitte.rodriguez@ext.cemex.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Vacaciones","value":"{\"index\":1}"},{"id":"color_mm7g7naz","text":"NORESTE","value":"{\"index\":1}"},{"id":"date4","text":"2026-10-12","value":"{\"date\":\"2026-10-12\"}"},{"id":"timerange_mm7gjxra","text":"2026-12-04 - 2026-12-07","value":"{\"to\":\"2026-12-07\",\"from\":\"2026-12-04\"}"},{"id":"numeric_mm7gf0nh","text":"2","value":"\"2\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-12T23:00:25.377Z\"}"},{"id":"text_mm7g4np1","text":"Se solicitan estos dias por cuestiones familiares","value":"\"Se solicitan estos dias por cuestiones familiares\""},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP","value":"\"Por favor cargarlas en SAP\""}]},{"id":"13240862400","name":"Jesus Perez","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Paola Cagua","value":"\"Paola Cagua\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Vacaciones","value":"{\"index\":1}"},{"id":"color_mm7g7naz","text":"PACIFICO","value":"{\"index\":0}"},{"id":"date4","text":"2026-10-08","value":"{\"date\":\"2026-10-08\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-06 - 2026-11-10","value":"{\"to\":\"2026-11-10\",\"from\":\"2026-11-06\"}"},{"id":"numeric_mm7gf0nh","text":"3","value":"\"3\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-16T22:27:06.566Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Aprobadas con la corrección realizada, por favor subirlas a SAPSUCC","value":"\"Aprobadas con la corrección realizada, por favor subirlas a SAPSUCC\""}]},{"id":"13278480608","name":"Angela Melo","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Daniel Perez - angela.yazmin.melo@ibm.com","value":"\"Daniel Perez - angela.yazmin.melo@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"CENTRO-SUR","value":"{\"index\":2}"},{"id":"date4","text":"2026-10-13","value":"{\"date\":\"2026-10-13\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-06 - 2026-11-06","value":"{\"to\":\"2026-11-06\",\"from\":\"2026-11-06\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-30T17:43:37.797Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP Hoy","value":"\"Por favor cargarlas en SAP Hoy\""}]},{"id":"13278461480","name":"Angela Melo","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Daniel Perez - angela.yazmin.melo@ibm.com","value":"\"Daniel Perez - angela.yazmin.melo@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Vacaciones","value":"{\"index\":1}"},{"id":"color_mm7g7naz","text":"CENTRO-SUR","value":"{\"index\":2}"},{"id":"date4","text":"2026-10-13","value":"{\"date\":\"2026-10-13\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-09 - 2026-11-09","value":"{\"to\":\"2026-11-09\",\"from\":\"2026-11-09\",\"changed_at\":\"2026-10-13T16:19:14.992Z\",\"visualization_type\":null}"},{"id":"numeric_mm7gf0nh","text":"2","value":"\"2\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-30T17:43:39.852Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP Hoy","value":"\"Por favor cargarlas en SAP Hoy\""}]},{"id":"13349586997","name":"Francisco Rojas","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Yessica Martinez - Yessica.Perez.Martinez@ibm.com","value":"\"Yessica Martinez - Yessica.Perez.Martinez@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"CENTRO-SUR","value":"{\"index\":2}"},{"id":"date4","text":"2026-10-21","value":"{\"date\":\"2026-10-21\"}"},{"id":"timerange_mm7gjxra","text":"2026-12-08 - 2026-12-08","value":"{\"to\":\"2026-12-08\",\"from\":\"2026-12-08\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-30T17:44:21.378Z\"}"},{"id":"text_mm7g4np1","text":"Dia familia","value":"\"Dia familia\""},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP Hoy","value":"\"Por favor cargarlas en SAP Hoy\""}]},{"id":"13349635322","name":"Angela Cartagena","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Alejandra Arias - alejandra.arias@ibm.com","value":"\"Alejandra Arias - alejandra.arias@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"CENTRO-SUR","value":"{\"index\":2}"},{"id":"date4","text":"2026-10-21","value":"{\"date\":\"2026-10-21\"}"},{"id":"timerange_mm7gjxra","text":"2026-12-17 - 2026-12-17","value":"{\"to\":\"2026-12-17\",\"from\":\"2026-12-17\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-30T17:44:23.436Z\"}"},{"id":"text_mm7g4np1","text":"Dia de la familia","value":"\"Dia de la familia\""},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP Hoy","value":"\"Por favor cargarlas en SAP Hoy\""}]},{"id":"13349615997","name":"Angela Cartagena","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Alejandra Arias - alejandra.arias@ibm.com","value":"\"Alejandra Arias - alejandra.arias@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Cumpleaños","value":"{\"index\":0,\"post_id\":null,\"changed_at\":\"2026-10-21T18:10:51.431Z\"}"},{"id":"color_mm7g7naz","text":"CENTRO-SUR","value":"{\"index\":2}"},{"id":"date4","text":"2026-10-21","value":"{\"date\":\"2026-10-21\"}"},{"id":"timerange_mm7gjxra","text":"2026-12-18 - 2026-12-18","value":"{\"to\":\"2026-12-18\",\"from\":\"2026-12-18\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-30T17:44:32.083Z\"}"},{"id":"text_mm7g4np1","text":"Cumpleaños","value":"\"Cumpleaños\""},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP Hoy","value":"\"Por favor cargarlas en SAP Hoy\""}]},{"id":"13352003329","name":"Valentina Olarte","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Haimer Alexander Herrera Holguin - alexander.herrera@ibm.com","value":"\"Haimer Alexander Herrera Holguin - alexander.herrera@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"PACIFICO","value":"{\"index\":0}"},{"id":"date4","text":"2026-11-19","value":"{\"date\":\"2026-11-19\",\"changed_at\":\"2026-10-28T17:17:05.253Z\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-20 - 2026-11-20","value":"{\"to\":\"2026-11-20\",\"from\":\"2026-11-20\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-30T17:44:33.780Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP Hoy","value":"\"Por favor cargarlas en SAP Hoy\""}]},{"id":"13416950724","name":"Adolfo Mario Méndez Meza","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Andrea Ospina - Andrea.Ospina@ibm.com","value":"\"Andrea Ospina - Andrea.Ospina@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"PACIFICO","value":"{\"index\":0}"},{"id":"date4","text":"2026-10-29","value":"{\"date\":\"2026-10-29\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-17 - 2026-11-17","value":"{\"to\":\"2026-11-17\",\"from\":\"2026-11-17\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-30T17:44:35.698Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"","value":null}]},{"id":"13459868842","name":"Jesus Perez","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Paola Cagua","value":"\"Paola Cagua\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"PACIFICO","value":"{\"index\":0}"},{"id":"date4","text":"2026-11-11","value":"{\"date\":\"2026-11-11\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-11 - 2026-11-11","value":"{\"to\":\"2026-11-11\",\"from\":\"2026-11-11\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-11-04T23:38:58.343Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Por favor cargar en SAP Hoy","value":"\"Por favor cargar en SAP Hoy\""}]},{"id":"13430734594","name":"DANIEL STEVEN PEREZ QUNCHE","group":{"id":"group_title","title":"Aprobadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"ALEXANDER HERRA, YEIMY GARZON - alexander.herrera@ibm.com","value":"\"ALEXANDER HERRA, YEIMY GARZON - alexander.herrera@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"PACIFICO","value":"{\"index\":0}"},{"id":"date4","text":"2026-10-30","value":"{\"date\":\"2026-10-30\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-17 - 2026-11-17","value":"{\"to\":\"2026-11-17\",\"from\":\"2026-11-17\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-11-04T23:39:13.010Z\"}"},{"id":"text_mm7g4np1","text":"Se solicita día de familia","value":"\"Se solicita día de familia\""},{"id":"text_mm821rme","text":"Por favor cargar en SAP Hoy","value":"\"Por favor cargar en SAP Hoy\""}]},{"id":"13127255090","name":"Item 1","group":{"id":"group_mm7gvhq3","title":"Rechazadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"","value":null},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":null,"value":null},{"id":"color_mm7g7naz","text":"","value":null},{"id":"date4","text":"2025-09-17","value":"{\"date\":\"2025-09-17\",\"icon\":null,\"changed_at\":\"2025-09-16T07:52:16.028Z\"}"},{"id":"timerange_mm7gjxra","text":"","value":null},{"id":"numeric_mm7gf0nh","text":"","value":null},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":null,"value":null},{"id":"color_mm7gg2a7","text":null,"value":null},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"","value":null}]},{"id":"13127261991","name":"Item 1","group":{"id":"group_mm7gw9qw","title":"Finalizadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"","value":null},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":null,"value":null},{"id":"color_mm7g7naz","text":"","value":null},{"id":"date4","text":"2025-09-17","value":"{\"date\":\"2025-09-17\",\"icon\":null,\"changed_at\":\"2025-09-16T07:52:16.028Z\"}"},{"id":"timerange_mm7gjxra","text":"","value":null},{"id":"numeric_mm7gf0nh","text":"","value":null},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":null,"value":null},{"id":"color_mm7gg2a7","text":null,"value":null},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"","value":null}]},{"id":"13210139652","name":"Víctor Hugo Suárez Ardila","group":{"id":"group_mm7gw9qw","title":"Finalizadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Jesus Alberto Pérez - jesusa.perezh@ext.cemex.com","value":"\"Jesus Alberto Pérez - jesusa.perezh@ext.cemex.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Feridado Disfrutado","value":"{\"index\":6}"},{"id":"color_mm7g7naz","text":"CENTRO-SUR","value":"{\"index\":2}"},{"id":"date4","text":"2026-10-05","value":"{\"date\":\"2026-10-05\"}"},{"id":"timerange_mm7gjxra","text":"2026-10-12 - 2026-10-12","value":"{\"to\":\"2026-10-12\",\"from\":\"2026-10-12\",\"changed_at\":\"2026-10-05T18:12:38.651Z\",\"visualization_type\":\"milestone\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-12T22:22:44.152Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Ok carga en SAP","value":"\"Ok carga en SAP\""}]},{"id":"13210170174","name":"Víctor Hugo Suárez Ardila","group":{"id":"group_mm7gw9qw","title":"Finalizadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Jesus Alberto Pérez - jesusa.perezh@ext.cemex.com","value":"\"Jesus Alberto Pérez - jesusa.perezh@ext.cemex.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Vacaciones","value":"{\"index\":1}"},{"id":"color_mm7g7naz","text":"CENTRO-SUR","value":"{\"index\":2}"},{"id":"date4","text":"2026-10-05","value":"{\"date\":\"2026-10-05\"}"},{"id":"timerange_mm7gjxra","text":"2026-10-13 - 2026-10-22","value":"{\"to\":\"2026-10-22\",\"from\":\"2026-10-13\"}"},{"id":"numeric_mm7gf0nh","text":"8","value":"\"8\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-12T22:23:02.655Z\"}"},{"id":"text_mm7g4np1","text":"","value":null},{"id":"text_mm821rme","text":"Ok carga en SAP","value":"\"Ok carga en SAP\""}]},{"id":"13209607288","name":"JULIETH CALDAS","group":{"id":"group_mm7gw9qw","title":"Finalizadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"PAOLA CAGUA - paola.cagua@ibm.com","value":"\"PAOLA CAGUA - paola.cagua@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"NOR-PAC","value":"{\"index\":3}"},{"id":"date4","text":"2026-10-05","value":"{\"date\":\"2026-10-05\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-02 - 2026-11-02","value":"{\"to\":\"2026-11-02\",\"from\":\"2026-11-02\",\"changed_at\":\"2026-10-05T17:38:46.263Z\",\"visualization_type\":null}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-12T22:38:17.924Z\"}"},{"id":"text_mm7g4np1","text":"Se solicita día de familia","value":"\"Se solicita día de familia\""},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP","value":"\"Por favor cargarlas en SAP\""}]},{"id":"13444973022","name":"JOSHUA MANRIQUE CORTÉS","group":{"id":"group_mm7gw9qw","title":"Finalizadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"CINDY MUÑOZ - cindy.munoz@ext.cemex.com","value":"\"CINDY MUÑOZ - cindy.munoz@ext.cemex.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"NORESTE","value":"{\"index\":1}"},{"id":"date4","text":"2026-11-02","value":"{\"date\":\"2026-11-02\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-04 - 2026-11-04","value":"{\"to\":\"2026-11-04\",\"from\":\"2026-11-04\",\"changed_at\":\"2026-11-02T22:26:01.367Z\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"En revisión","value":"{\"index\":0}"},{"id":"text_mm7g4np1","text":"Perdón el momento de la solicitud, me confirmaron el domingo la programación de unos examenes para mi mamá que requieres sedación y tiene que ir con acompañante","value":"\"Perdón el momento de la solicitud, me confirmaron el domingo la programación de unos examenes para mi mamá que requieres sedación y tiene que ir con acompañante\""},{"id":"text_mm821rme","text":"","value":null}]},{"id":"13218012570","name":"Karen Tatiana Aldana Veloza","group":{"id":"group_mm7gw9qw","title":"Finalizadas"},"column_values":[{"id":"subtasks_mm7q2bxz","text":null,"value":null},{"id":"text_mm7gxx4s","text":"Yeimy Carolina Garzon - carolina.garzon@ibm.com","value":"\"Yeimy Carolina Garzon - carolina.garzon@ibm.com\""},{"id":"multiple_person_mm7gtypz","text":"","value":null},{"id":"status","text":"Dia de la familia","value":"{\"index\":2}"},{"id":"color_mm7g7naz","text":"PACIFICO","value":"{\"index\":0}"},{"id":"date4","text":"2026-10-06","value":"{\"date\":\"2026-10-06\",\"changed_at\":\"2026-10-06T14:29:49.315Z\"}"},{"id":"timerange_mm7gjxra","text":"2026-11-05 - 2026-11-05","value":"{\"to\":\"2026-11-05\",\"from\":\"2026-11-05\"}"},{"id":"numeric_mm7gf0nh","text":"1","value":"\"1\""},{"id":"file_mm7g6w04","text":"","value":null},{"id":"color_mm7qmmkn","text":"Anlli Liliana Varon","value":"{\"index\":0}"},{"id":"color_mm7gg2a7","text":"Aprobado","value":"{\"index\":1,\"post_id\":null,\"changed_at\":\"2026-10-12T22:44:32.292Z\"}"},{"id":"text_mm7g4np1","text":"Día de familia","value":"\"Día de familia\""},{"id":"text_mm821rme","text":"Por favor cargarlas en SAP","value":"\"Por favor cargarlas en SAP\""}]}]}};
+var __STAMP="10/11/26, 5:40 p.m.";
+function __roToast(m){try{showToast(m,false);}catch(e){alert(m);}}
+var __RO="Vista estatica de solo lectura: no se pueden guardar cambios.";
+async function mq(query){
+  query=String(query);
+  if(/^\s*mutation/i.test(query)) throw new Error(__RO);
+  var m=query.match(/boards\(ids:\s*\[?\s*(\d+)/); if(!m) throw new Error("Consulta no disponible en la vista estatica");
+  var b=__SNAP[m[1]]; if(!b) throw new Error("Tablero no incluido en la foto");
+  if(/columns\s*\{/.test(query)) return {boards:[{columns:b.columns}]};
+  var lim=(query.match(/limit:\s*(\d+)/)||[])[1]; var items=b.items.slice(0,lim?+lim:b.items.length);
+  var ids=(query.match(/column_values\(ids:\s*\[([^\]]*)\]\)/)||[])[1];
+  if(ids){ids=ids.split(",").map(function(s){return s.trim().replace(/"/g,"");});
+    items=items.map(function(it){return {id:it.id,name:it.name,group:it.group,column_values:it.column_values.filter(function(c){return ids.indexOf(c.id)>-1;})};});}
+  return {boards:[{items_page:{cursor:null,items:items}}]};
+}
+async function mup(){ throw new Error(__RO); }
+document.addEventListener("DOMContentLoaded",function(){
+  var d=document.createElement("div");
+  d.style.cssText="position:fixed;left:12px;bottom:12px;z-index:99999;background:#0f172a;color:#fff;padding:6px 12px;border-radius:999px;font:600 11px system-ui,sans-serif;opacity:.92;pointer-events:none";
+  d.textContent="Vista estatica \u00b7 solo lectura \u00b7 datos al "+__STAMP; document.body.appendChild(d);
+});
+</script>
+<script>
+function reqAprPwd(){__roToast(__RO);}
+async function confirmAprPwd(){__roToast(__RO);}
+</script>
+
+
+<!-- MODAL PASSWORD -->
+<div id="aprPwdModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:32px;max-width:380px;width:90%;box-shadow:0 24px 60px rgba(15,98,254,.22);">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:4px;">Acceso de Aprobadora</h3>
+    <p style="font-size:11px;color:#6b7fa3;margin-bottom:16px;">Solo <strong>Anlli Liliana Varon</strong> puede aprobar o rechazar.</p>
+    <div id="aprPwdErr" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:7px;padding:8px 12px;font-size:11px;color:#dc2626;margin-bottom:10px;"></div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:10px;font-weight:700;color:#6b7fa3;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Contrasena</label>
+      <input type="password" id="aprPwdInput" style="width:100%;padding:10px 14px;border:1px solid #dbe4f8;border-radius:8px;font-size:13px;font-family:inherit;" onkeydown="if(event.key==='Enter')confirmAprPwd()"/>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="cancelAprPwd()" style="flex:1;padding:10px;border:1px solid #dbe4f8;border-radius:8px;background:#f7f8fa;color:#6b7fa3;font-size:12px;font-weight:600;cursor:pointer;">Cancelar</button>
+      <button onclick="confirmAprPwd()" style="flex:1;padding:10px;background:#0f62fe;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">Ingresar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="fixed bottom-6 right-6 z-[998] flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl text-sm font-semibold max-w-sm transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none" style="background:#fff;color:#1e2a45;border-left:3px solid #0f62fe;border:1px solid #dbe4f8;">
+  <span id="toastMsg">Mensaje</span>
+</div>
+
+<!-- HEADER -->
+<header style="background:#fff;border-bottom:2px solid #dbe4f8;height:60px;position:sticky;top:0;z-index:40;box-shadow:0 2px 16px rgba(15,98,254,.07);">
+  <div class="max-w-7xl mx-auto px-5 h-full flex items-center justify-between gap-4">
+    <div class="flex items-center gap-4">
+      <svg width="80" height="30" viewBox="0 0 176 64" xmlns="http://www.w3.org/2000/svg" aria-label="IBM">
+        <defs>
+          <clipPath id="hI"><rect x="0" y="0" width="32" height="10"/><rect x="8" y="10" width="16" height="44"/><rect x="0" y="54" width="32" height="10"/></clipPath>
+          <clipPath id="hB"><rect x="40" y="0" width="12" height="64"/><rect x="52" y="0" width="18" height="10"/><path d="M52 10 Q76 10 76 22 Q76 32 52 32 L52 10Z"/><rect x="52" y="32" width="18" height="10"/><path d="M52 42 Q78 42 78 54 Q78 64 52 64 L52 42Z"/><rect x="52" y="54" width="18" height="10"/></clipPath>
+          <clipPath id="hM"><rect x="88" y="0" width="14" height="64"/><rect x="158" y="0" width="14" height="64"/><polygon points="102,0 130,40 158,0"/><polygon points="102,64 130,40 158,64"/></clipPath>
+        </defs>
+        <g clip-path="url(#hI)"><rect width="32" height="64" fill="#0f62fe"/></g>
+        <g clip-path="url(#hB)"><rect x="40" width="40" height="64" fill="#0f62fe"/></g>
+        <g clip-path="url(#hM)"><rect x="88" width="84" height="64" fill="#0f62fe"/></g>
+      </svg>
+      <div style="width:1px;height:24px;background:#dbe4f8;"></div>
+      <span style="font-size:13px;font-weight:600;" id="boardNameHeader">Gestion de Ausencias</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <div id="progressBar" style="position:fixed;top:0;left:0;height:0;background:#0f62fe;transition:width .3s;z-index:999;"></div>
+      <button onclick="syncAllFromMonday(true)" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:#e8f0fe;color:#0f62fe;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">
+        <svg id="syncIcon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Sincronizar
+      </button>
+      <a href="https://ibm.monday.com/boards/18432588237" target="_blank" rel="noopener" style="font-size:12px;color:#6b7fa3;text-decoration:none;">Monday</a>
+      <a href="index_v2.html" style="font-size:12px;color:#6b7fa3;text-decoration:none;">Portal</a>
+    </div>
+  </div>
+</header>
+
+<!-- TABS -->
+<div style="background:#fff;border-bottom:1px solid #dbe4f8;display:flex;padding:0 20px;gap:4px;position:sticky;top:60px;z-index:30;">
+  <button id="tab1" onclick="switchSlide(1)" style="padding:13px 18px;font-size:12px;font-weight:600;border:none;background:transparent;cursor:pointer;border-bottom:2px solid #0f62fe;color:#0f62fe;">Solicitudes</button>
+  <button id="tab2" onclick="switchSlide(2)" style="padding:13px 18px;font-size:12px;font-weight:600;border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;color:#6b7fa3;">Cronograma</button>
+</div>
+
+<main class="max-w-7xl mx-auto px-5 py-5 w-full flex-1">
+
+  <!-- SLIDE 1 -->
+  <section id="slide1" class="slide-enter">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+      <!-- FORM -->
+      <aside class="lg:col-span-4">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <h2 class="text-sm font-bold text-slate-900 mb-1">Nueva Solicitud</h2>
+          <p class="text-[11px] text-slate-400 mb-4">Board 18432588237 — Forecast Ausencias</p>
+          <div id="obsAlert" style="display:none;"></div>
+          <form id="createForm" onsubmit="handleCreateItem(event)" class="space-y-3 text-xs">
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">ADCAR *</label>
+              <input type="text" id="c_adcar" required
+                class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50"
+                placeholder="Escribe el nombre del ADCAR"/>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Motivo</label>
+              <select id="c_motivo" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50">
+                <option value="">- Seleccionar -</option>
+                <option value="Cumplea&#241;os">Cumplea&#241;os</option>
+                <option value="Vacaciones">Vacaciones</option>
+                <option value="Dia de la familia">Dia de la familia</option>
+                <option value="Deber C&#237;vico">Deber C&#237;vico</option>
+                <option value="Incapacidad">Incapacidad</option>
+                <option value="Feridado Disfrutado">Feridado Disfrutado</option>
+                <option value="Calamidad Domestica">Calamidad Domestica</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Region</label>
+              <select id="c_region" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50">
+                <option value="">- Seleccionar -</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Fecha de Solicitud</label>
+              <input type="date" id="c_date4" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50"/>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Cronograma</label>
+              <div class="grid grid-cols-2 gap-2">
+                <input type="date" id="c_timeline_from" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50" oninput="autoCalcDias('c')" onchange="autoCalcDias('c')"/>
+                <input type="date" id="c_timeline_to" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50" oninput="autoCalcDias('c')" onchange="autoCalcDias('c')"/>
+              </div>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Dias Ausencias (auto)</label>
+              <input type="number" id="c_dias" min="0" step="0.5" placeholder="Auto desde cronograma" readonly class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg" style="background:#f0fdf4;color:#065f46;font-weight:600;"/>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Backup</label>
+              <input type="text" id="c_backup" placeholder="Nombre del backup" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50"/>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Correo del Backup</label>
+              <input type="email" id="c_backup_email" placeholder="backup@ibm.com" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50"/>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Observaciones</label>
+              <textarea id="c_obs" rows="2" placeholder="Observaciones..." class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 resize-none"></textarea>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Soporte Ausencia</label>
+              <div id="aus-drop" onclick="document.getElementById('aus-file-input').click()"
+                ondragover="event.preventDefault();this.style.borderColor='#0f62fe'"
+                ondragleave="this.style.borderColor='#c7d7fc'"
+                ondrop="event.preventDefault();this.style.borderColor='#c7d7fc';ausHandleFiles(event.dataTransfer.files)"
+                style="border:2px dashed #c7d7fc;border-radius:10px;padding:14px;text-align:center;background:#e8f0fe;cursor:pointer;">
+                <input type="file" id="aus-file-input" multiple accept="*/*" style="display:none;" onchange="ausHandleFiles(this.files)"/>
+                <div style="font-size:11px;font-weight:700;color:#0f62fe;">Arrastra o haz clic para adjuntar</div>
+                <div style="font-size:10px;color:#6b7fa3;margin-top:3px;">Cualquier archivo - Max 50 MB</div>
+              </div>
+              <div id="aus-file-list" style="margin-top:6px;"></div>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Aprobante</label>
+              <input type="text" value="Anlli Liliana Varon" readonly class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg" style="background:#f0fdf4;color:#065f46;font-weight:600;"/>
+            </div>
+            <button type="submit" class="w-full flex items-center justify-center gap-2 py-2.5 text-white font-bold text-xs rounded-xl mt-2" style="background:#0f62fe;">
+              Guardar en Monday
+            </button>
+          </form>
+        </div>
+      </aside>
+
+      <!-- TABLE + CHARTS -->
+      <div class="lg:col-span-8 space-y-5">
+        <div id="kpiGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-slate-100">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Solicitudes del Tablero</h2>
+              <p class="text-[11px] text-slate-400">Clic en fila para editar</p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <input type="text" id="searchInput" oninput="filterTable()" placeholder="Buscar..." class="pl-3 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-slate-50 w-36"/>
+              <select id="motivoFilter" onchange="filterTable()" class="px-2 py-1.5 text-xs border border-slate-200 rounded-lg bg-slate-50 text-slate-600">
+                <option value="ALL">Todos los motivos</option>
+                <option>Cumplea&#241;os</option><option>Vacaciones</option><option>Dia de la familia</option>
+                <option>Deber C&#237;vico</option><option>Incapacidad</option>
+                <option>Feridado Disfrutado</option><option>Calamidad Domestica</option>
+              </select>
+              <select id="groupFilter" onchange="filterTable()" class="px-2 py-1.5 text-xs border border-slate-200 rounded-lg bg-slate-50 text-slate-600">
+                <option value="ALL">Todos los grupos</option>
+              </select>
+            </div>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-slate-100 max-h-[440px] overflow-y-auto">
+            <table class="w-full text-left text-xs text-slate-600 whitespace-nowrap">
+              <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider font-bold border-b border-slate-200 sticky top-0 z-10">
+                <tr>
+                  <th class="px-3 py-3">ADCAR</th>
+                  <th class="px-3 py-3">Motivo</th>
+                  <th class="px-3 py-3">Region</th>
+                  <th class="px-3 py-3">Fecha Sol.</th>
+                  <th class="px-3 py-3">Cronograma</th>
+                   <th class="px-3 py-3">Días</th>
+                   <th class="px-3 py-3">Total Días ADCAR</th>
+                   <th class="px-3 py-3">Estado Aprobación</th>
+                  <th class="px-3 py-3">Estado</th>
+                  <th class="px-3 py-3">Obs. Manager</th>
+<th class="px-3 py-3 text-right">Accion</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody" class="divide-y divide-slate-50"></tbody>
+            </table>
+          </div>
+          <div id="tableFooter" class="flex items-center justify-between mt-3 text-[11px] text-slate-400 font-medium px-1"></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <h3 class="text-xs font-bold text-slate-800 mb-3">Estado de Aprobacion</h3>
+            <div class="relative h-44"><canvas id="statusChart"></canvas></div>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <h3 class="text-xs font-bold text-slate-800 mb-3">Motivos de Ausencia</h3>
+            <div class="relative h-44"><canvas id="groupsChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 2 -->
+  <section id="slide2" class="hidden slide-enter">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Cronograma del Equipo</h2>
+          <p class="text-xs text-slate-400 mt-1">Ausencias en tiempo real desde Monday</p>
+        </div>
+        <select id="calendarFilterPerson" onchange="populateCalendar()" class="text-xs px-3 py-1.5 border border-slate-200 rounded-lg bg-slate-50 font-medium text-slate-600">
+          <option value="ALL">Todas las personas</option>
+        </select>
+      </div>
+      <div class="mt-5"><div id="calendar" class="min-h-[560px]"></div></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer style="background:#fff;border-top:1px solid #dbe4f8;" class="py-4 px-6 mt-2">
+  <div class="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-3">
+    <span class="text-xs text-slate-400">IBM Corporation - Gestion de Ausencias - Board 18432588237</span>
+    <div class="flex gap-4">
+      <a href="https://ibm.monday.com/boards/18432588237" target="_blank" rel="noopener" class="text-xs text-slate-400 hover:text-blue-600">Monday</a>
+      <a href="index_v2.html" class="text-xs text-slate-400 hover:text-blue-600">Portal</a>
+      <a href="dashboard_actualizaciones.html" class="text-xs text-slate-400 hover:text-blue-600">Actualizaciones</a>
+    </div>
+  </div>
+</footer>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+  <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-100 max-h-[92vh] flex flex-col">
+    <div class="flex items-center justify-between p-5 border-b border-slate-100">
+      <h3 class="text-sm font-bold text-slate-900">Editar solicitud</h3>
+      <button onclick="closeEditModal()" class="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 text-lg font-bold">x</button>
+    </div>
+    <form id="editForm" onsubmit="saveEditedItem(event)" class="flex-1 overflow-y-auto p-5 space-y-3 text-xs">
+      <input type="hidden" id="editItemId"/>
+      <div>
+        <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Nombre</label>
+        <input type="text" id="editItemName" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs" style="background:#f7f8fa;color:#57606a;" readonly/>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Motivo</label>
+        <select id="e_motivo" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50">
+          <option value="">- Seleccionar -</option>
+          <option value="Cumplea&#241;os">Cumplea&#241;os</option>
+          <option value="Vacaciones">Vacaciones</option>
+          <option value="Dia de la familia">Dia de la familia</option>
+          <option value="Deber C&#237;vico">Deber C&#237;vico</option>
+          <option value="Incapacidad">Incapacidad</option>
+          <option value="Feridado Disfrutado">Feridado Disfrutado</option>
+          <option value="Calamidad Domestica">Calamidad Domestica</option>
+        </select>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Region</label>
+        <select id="e_region" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50">
+          <option value="">- Seleccionar -</option>
+        </select>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Fecha de Solicitud</label>
+        <input type="date" id="e_date4" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50"/>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Cronograma</label>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="date" id="e_timeline_from" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50" oninput="autoCalcDias('e')"/>
+          <input type="date" id="e_timeline_to" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50" oninput="autoCalcDias('e')"/>
+        </div>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Dias Ausencias (auto)</label>
+        <input type="number" id="e_dias" min="0" step="0.5" readonly class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg" style="background:#f0fdf4;color:#065f46;font-weight:600;"/>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Backup</label>
+        <input type="text" id="e_backup" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50"/>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Correo del Backup</label>
+        <input type="email" id="e_backup_email" placeholder="backup@ibm.com" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50"/>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Observaciones</label>
+        <textarea id="e_obs" rows="2" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 resize-none"></textarea>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-600 mb-1 uppercase tracking-wide text-[10px]">Observaciones Manager (solo lectura)</label>
+        <textarea id="e_obs_mgr" rows="2" readonly class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-100 resize-none"></textarea>
+      </div>
+      <div class="p-3 rounded-xl border" style="background:#fef3c7;border-color:#fde68a;">
+        <div style="font-size:10px;font-weight:700;color:#92400e;text-transform:uppercase;margin-bottom:8px;">Aprobacion - Anlli Liliana Varon (exclusivo)</div>
+        <div id="aprStatus" style="font-size:12px;margin-bottom:10px;"></div>
+        <div style="display:flex;gap:8px;">
+          <button type="button" onclick="reqAprPwd('approve')" style="flex:1;font-size:11px;font-weight:700;padding:8px;background:#059669;color:#fff;border:none;border-radius:8px;cursor:pointer;">Aprobar</button>
+          <button type="button" onclick="reqAprPwd('reject')" style="flex:1;font-size:11px;font-weight:700;padding:8px;background:#dc2626;color:#fff;border:none;border-radius:8px;cursor:pointer;">Rechazar</button>
+        </div>
+      </div>
+      <div class="flex items-center justify-between pt-4 border-t border-slate-100 mt-2">
+        <button type="button" onclick="deleteCurrentItem()" class="px-3 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-50 rounded-lg">Eliminar</button>
+        <div class="flex gap-2">
+          <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+          <button type="submit" class="px-4 py-2 text-xs font-bold text-white rounded-lg shadow-sm" style="background:#0f62fe;">Guardar en Monday</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+const BOARD_ID = 18432588237;
+const MOTIVO_MAP = {'Cumpleanos':0,'Vacaciones':1,'Dia de la familia':2,'Deber Civico':3,'Incapacidad':4,'Feridado Disfrutado':6,'Calamidad Domestica':7};
+const REGION_MAP = {'PACIFICO':0,'NORESTE':1,'CENTRO-SUR':2,'NOR-PAC':3};
+const APR_PASSWORD = '';
+let allItems = [];
+let pendingAprAction = null;
+let ausFiles = [];
+let calInstance = null;
+
+async function __mq_live(query) {
+  const r = await fetch('#static', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query})});
+  const j = await r.json();
+  if(j.errors) throw new Error(j.errors[0].message);
+  return j.data;
+}
+
+function showToast(msg, ok) {
+  const t = document.getElementById('toast');
+  const m = document.getElementById('toastMsg');
+  m.textContent = msg;
+  t.style.borderLeftColor = ok === false ? '#dc2626' : ok === 'warn' ? '#d97706' : '#059669';
+  t.classList.remove('translate-y-20','opacity-0');
+  t.classList.add('translate-y-0','opacity-100');
+  setTimeout(()=>{ t.classList.add('translate-y-20','opacity-0'); t.classList.remove('translate-y-0','opacity-100'); }, 3500);
+}
+
+function setProgress(pct) {
+  const b = document.getElementById('progressBar');
+  b.style.height = pct > 0 ? '3px' : '0';
+  b.style.width = pct + '%';
+}
+
+function autoCalcDias(pfx) {
+  const f = document.getElementById(pfx+'_timeline_from').value;
+  const t = document.getElementById(pfx+'_timeline_to').value;
+  const el = document.getElementById(pfx+'_dias');
+  if(f && t) {
+    const d1 = new Date(f), d2 = new Date(t);
+    let days = 0;
+    const cur = new Date(d1);
+    while(cur <= d2) {
+      const dow = cur.getDay();
+      if(dow !== 0 && dow !== 6) days++;
+      cur.setDate(cur.getDate()+1);
+    }
+    el.value = days;
+  } else {
+    el.value = '';
+  }
+}
+
+function switchSlide(n) {
+  document.getElementById('slide1').classList.toggle('hidden', n!==1);
+  document.getElementById('slide2').classList.toggle('hidden', n!==2);
+  document.getElementById('tab1').style.borderBottomColor = n===1?'#0f62fe':'transparent';
+  document.getElementById('tab1').style.color = n===1?'#0f62fe':'#6b7fa3';
+  document.getElementById('tab2').style.borderBottomColor = n===2?'#0f62fe':'transparent';
+  document.getElementById('tab2').style.color = n===2?'#0f62fe':'#6b7fa3';
+  if(n===2) setTimeout(()=>populateCalendar(),100);
+}
+
+function getColVal(item, colId) {
+  const cv = (item.column_values||[]).find(c=>c.id===colId);
+  return cv ? cv.text || '' : '';
+}
+
+function getColRaw(item, colId) {
+  const cv = (item.column_values||[]).find(c=>c.id===colId);
+  return cv ? cv.value || '' : '';
+}
+
+function renderRegionOptions(selId, current) {
+  const sel = document.getElementById(selId);
+  const regions = ['PACIFICO','NORESTE','CENTRO-SUR','NOR-PAC'];
+  sel.innerHTML = '<option value="">- Seleccionar -</option>';
+  regions.forEach(r => {
+    const o = document.createElement('option');
+    o.value = r; o.textContent = r;
+    if(r === current) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+function statusBadge(val) {
+  const colors = {'En revision':'#f59e0b','Aprobado':'#059669','Rechazado':'#dc2626'};
+  const c = colors[val] || '#6b7fa3';
+  return '<span class="sbadge" style="background:'+c+'22;color:'+c+'">'+val+'</span>';
+}
+
+function motivoBadge(val) {
+  const colors = {'Cumpleanos':'#8b5cf6','Vacaciones':'#0f62fe','Incapacidad':'#dc2626','Calamidad Domestica':'#d97706','Dia de la familia':'#059669','Deber Civico':'#0891b2','Feridado Disfrutado':'#64748b'};
+  const c = colors[val] || '#6b7fa3';
+  return '<span class="sbadge" style="background:'+c+'22;color:'+c+'">'+val+'</span>';
+}
+
+async function syncAllFromMonday(showMsg) {
+  const icon = document.getElementById('syncIcon');
+  icon.style.animation = 'spin 1s linear infinite';
+  setProgress(20);
+  try {
+    const data = await mq('{ boards(ids:['+BOARD_ID+']){ items_page(limit:100){ items{ id name group{ id title } column_values{ id text value } } } } }');
+    const rawItems = data.boards[0].items_page.items;
+    allItems = rawItems.filter(it => it.name && it.name.trim() && it.name !== 'Item 1');
+    setProgress(60);
+    populateAdcarSelects();
+    renderKPIs();
+    renderTable(allItems);
+    renderCharts();
+    if(typeof ausCheckObs==='function') ausCheckObs();
+    if(showMsg) showToast('Sincronizado correctamente', true);
+  } catch(e) {
+    showToast('Error: '+e.message, false);
+  } finally {
+    icon.style.animation = '';
+    setProgress(0);
+  }
+}
+
+function populateAdcarSelects() {
+  const seen = new Set();
+  const unique = allItems.filter(it => {
+    if(seen.has(it.name)) return false;
+    seen.add(it.name);
+    return true;
+  });
+  const sel = document.getElementById('c_adcar');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">- Seleccionar ADCAR -</option>';
+  unique.forEach(it => {
+    const o = document.createElement('option');
+    o.value = it.id;
+    o.textContent = it.name;
+    if(it.id === current) o.selected = true;
+    sel.appendChild(o);
+  });
+  const calSel = document.getElementById('calendarFilterPerson');
+  calSel.innerHTML = '<option value="ALL">Todas las personas</option>';
+  unique.forEach(it => {
+    const o = document.createElement('option');
+    o.value = it.name; o.textContent = it.name;
+    calSel.appendChild(o);
+  });
+  const grpSel = document.getElementById('groupFilter');
+  const groups = [...new Set(allItems.map(it=>it.group ? it.group.title : ''))].filter(Boolean);
+  grpSel.innerHTML = '<option value="ALL">Todos los grupos</option>';
+  groups.forEach(g => {
+    const o = document.createElement('option');
+    o.value = g; o.textContent = g;
+    grpSel.appendChild(o);
+  });
+}
+
+function onAdcarSelected() {
+  const sel = document.getElementById('c_adcar');
+  const itemId = sel.value;
+  if(!itemId) return;
+  const item = allItems.find(it=>it.id===itemId);
+  if(!item) return;
+  const region = getColVal(item,'color_mm7g7naz');
+  renderRegionOptions('c_region', region);
+  const backup = getColVal(item,'text_mm7gxx4s');
+  if(backup && backup.includes(' - ')) {
+    const parts = backup.split(' - ');
+    document.getElementById('c_backup').value = parts[0];
+    document.getElementById('c_backup_email').value = parts[1] || '';
+  } else {
+    document.getElementById('c_backup').value = backup;
+    document.getElementById('c_backup_email').value = '';
+  }
+  const obs = getColVal(item,'text_mm7g4np1');
+  document.getElementById('c_obs').value = obs;
+  const df = getColVal(item,'date4');
+  if(df) document.getElementById('c_date4').value = df;
+  const raw = getColRaw(item,'timerange_mm7gjxra');
+  if(raw) {
+    try {
+      const tl = JSON.parse(raw);
+      if(tl.from) document.getElementById('c_timeline_from').value = tl.from;
+      if(tl.to) document.getElementById('c_timeline_to').value = tl.to;
+      autoCalcDias('c');
+    } catch(ex){}
+  }
+  const dias = getColVal(item,'numeric_mm7gf0nh');
+  if(dias) document.getElementById('c_dias').value = dias;
+}
+
+function renderKPIs() {
+  const total = allItems.length;
+  const aprobadas = allItems.filter(it=>getColVal(it,'color_mm7gg2a7')==='Aprobado').length;
+  const rechazadas = allItems.filter(it=>getColVal(it,'color_mm7gg2a7')==='Rechazado').length;
+  const pendientes = allItems.filter(it=>!getColVal(it,'color_mm7gg2a7')||getColVal(it,'color_mm7gg2a7')==='En revision').length;
+  const kpis = [
+    {label:'Total',val:total,color:'#0f62fe'},
+    {label:'Aprobadas',val:aprobadas,color:'#059669'},
+    {label:'Rechazadas',val:rechazadas,color:'#dc2626'},
+    {label:'Pendientes',val:pendientes,color:'#d97706'}
+  ];
+  const grid = document.getElementById('kpiGrid');
+  grid.innerHTML = '';
+  kpis.forEach(k => {
+    grid.innerHTML += '<div style="background:#fff;border:1px solid #dbe4f8;border-radius:14px;padding:14px 16px;">'
+      +'<div style="font-size:10px;font-weight:700;color:#6b7fa3;text-transform:uppercase;margin-bottom:4px;">'+k.label+'</div>'
+      +'<div style="font-size:28px;font-weight:800;color:'+k.color+'">'+k.val+'</div>'
+      +'</div>';
+  });
+}
+
+function filterTable() {
+  const q = (document.getElementById('searchInput').value||'').toLowerCase();
+  const mot = document.getElementById('motivoFilter').value;
+  const grp = document.getElementById('groupFilter').value;
+  const filtered = allItems.filter(it => {
+    const name = it.name.toLowerCase();
+    const motivo = getColVal(it,'status');
+    const grupo = it.group ? it.group.title : '';
+    if(q && !name.includes(q) && !motivo.toLowerCase().includes(q)) return false;
+    if(mot !== 'ALL' && motivo !== mot) return false;
+    if(grp !== 'ALL' && grupo !== grp) return false;
+    return true;
+  });
+  renderTable(filtered);
+}
+
+function renderTable(items) {
+  const tbody = document.getElementById('tableBody');
+  const footer = document.getElementById('tableFooter');
+  tbody.innerHTML = '';
+  if(!items.length) {
+    tbody.innerHTML = '<tr><td colspan="11" class="px-4 py-10 text-center text-slate-400 text-xs">Sin datos</td></tr>';
+    footer.innerHTML = '';
+    return;
+  }
+  items.forEach(it => {
+    const motivo = getColVal(it,'status');
+    const region = getColVal(it,'color_mm7g7naz');
+    const fecha = getColVal(it,'date4');
+    const raw = getColRaw(it,'timerange_mm7gjxra');
+    let crono = '';
+    if(raw){ try{ const tl=JSON.parse(raw); crono=(tl.from||'')+' / '+(tl.to||''); }catch(ex){} }
+    const dias = getColVal(it,'numeric_mm7gf0nh');
+      const _adcarTotals = typeof calItems !== 'undefined' ? getAdcarTotals(calItems) : {};
+      const _totalAdcar = _adcarTotals[it.name] ? _adcarTotals[it.name].dias : (parseFloat(dias)||0);
+      const _estadoAdcar = _adcarTotals[it.name] ? _adcarTotals[it.name].estado : (getColVal(it,'color_mm7gg2a7')||'—');
+    const estado = getColVal(it,'color_mm7gg2a7');
+    const tr = document.createElement('tr');
+    tr.className = 'hover:bg-slate-50 cursor-pointer transition-colors';
+    tr.innerHTML = '<td class="px-3 py-2.5 font-medium text-slate-800">'+it.name+'</td>'
+      +'<td class="px-3 py-2.5">'+motivoBadge(motivo)+'</td>'
+      +'<td class="px-3 py-2.5 text-slate-500">'+region+'</td>'
+      +'<td class="px-3 py-2.5 text-slate-500">'+fecha+'</td>'
+      +'<td class="px-3 py-2.5 text-slate-500 text-[10px]">'+crono+'</td>'
+      +'<td class="px-3 py-2.5 font-semibold text-slate-700">'+dias+'</td>'
+      +'<td class="px-3 py-2.5">'+statusBadge(estado)+'</td>'
+      +'<td class="px-3 py-2.5 text-center font-bold text-blue-700">'+(_totalAdcar||'—')+'</td>'
+      +'<td class="px-3 py-2.5 text-center">'+(_estadoAdcar||'—')+'</td>'
+      +'<td class="px-3 py-2.5 text-slate-600 text-[10px]" style="max-width:220px;white-space:normal;">'+String(getColVal(it,'text_mm821rme')||'-').replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</td>'
+      +'<td class="px-3 py-2.5 text-right"><button onclick="openEditModal(\''+it.id+'\')" style="font-size:10px;padding:4px 10px;background:#e8f0fe;color:#0f62fe;border:none;border-radius:6px;font-weight:700;cursor:pointer;">Editar</button></td>';
+    tbody.appendChild(tr);
+  });
+  footer.innerHTML = '<span>'+items.length+' solicitudes</span>';
+}
+
+function renderCharts() {
+  const estadoData = {};
+  const motivoData = {};
+  allItems.forEach(it => {
+    const est = getColVal(it,'color_mm7gg2a7') || 'En revision';
+    const mot = getColVal(it,'status') || 'Sin motivo';
+    estadoData[est] = (estadoData[est]||0)+1;
+    motivoData[mot] = (motivoData[mot]||0)+1;
+  });
+  const sc = document.getElementById('statusChart');
+  const gc = document.getElementById('groupsChart');
+  if(window._sc) window._sc.destroy();
+  if(window._gc) window._gc.destroy();
+  window._sc = new Chart(sc, {type:'doughnut',data:{labels:Object.keys(estadoData),datasets:[{data:Object.values(estadoData),backgroundColor:['#f59e0b','#059669','#dc2626','#6b7fa3'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:10}}}}});
+  window._gc = new Chart(gc, {type:'doughnut',data:{labels:Object.keys(motivoData),datasets:[{data:Object.values(motivoData),backgroundColor:['#8b5cf6','#0f62fe','#059669','#0891b2','#dc2626','#d97706','#64748b'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:10}}}}});
+}
+</script><script>
+function buildColVals(pfx) {
+  const motivo = document.getElementById(pfx+'_motivo').value;
+  const region = document.getElementById(pfx+'_region').value;
+  const fecha = document.getElementById(pfx+'_date4').value;
+  const from = document.getElementById(pfx+'_timeline_from').value;
+  const to = document.getElementById(pfx+'_timeline_to').value;
+  const dias = document.getElementById(pfx+'_dias').value;
+  const backupName = (document.getElementById(pfx+'_backup')||{value:''}).value.trim();
+  const backupEmail = (document.getElementById(pfx+'_backup_email')||{value:''}).value.trim();
+  const obs = document.getElementById(pfx+'_obs').value;
+  const backupVal = backupEmail ? backupName+' - '+backupEmail : backupName;
+  const cols = {};
+  if(motivo) { const idx = MOTIVO_MAP[motivo]; if(idx!==undefined) cols['status'] = {index:idx}; }
+  if(region) { const idx = REGION_MAP[region]; if(idx!==undefined) cols['color_mm7g7naz'] = {index:idx}; }
+  if(fecha) cols['date4'] = {date:fecha};
+  if(from && to) cols['timerange_mm7gjxra'] = {from:from,to:to};
+  if(dias) cols['numeric_mm7gf0nh'] = String(dias);
+  if(backupVal) cols['text_mm7gxx4s'] = backupVal;
+  if(obs) cols['text_mm7g4np1'] = obs;
+  cols['color_mm7qmmkn'] = {index:0};
+  cols['color_mm7gg2a7'] = {index:0};
+  return cols;
+}
+
+async function handleCreateItem(ev) {
+  ev.preventDefault();
+  const adcarName = document.getElementById('c_adcar').value.trim();
+  if(!adcarName) { showToast('Escribe el nombre del ADCAR', 'warn'); return; }
+  const cols = buildColVals('c');
+  setProgress(30);
+  try {
+    const colJson = JSON.stringify(JSON.stringify(cols));
+    const mutation = 'mutation { create_item(board_id:'+BOARD_ID+', item_name:"'+adcarName.replace(/"/g,'')+'", column_values:'+colJson+') { id name } }';
+    await mq(mutation);
+    setProgress(70);
+    if(ausFiles.length) {
+      for(const f of ausFiles) {
+        const fd = new FormData();
+        fd.append('boardId', BOARD_ID);
+        fd.append('itemId', itemId);
+        fd.append('columnId', 'file_mm7g6w04');
+        fd.append('file', f);
+        await fetch('#static', {method:'POST',body:fd});
+      }
+    }
+    setProgress(100);
+    showToast('Ausencia registrada para: '+adcarName, true);
+    document.getElementById('createForm').reset();
+    ausFiles = [];
+    document.getElementById('aus-file-list').innerHTML = '';
+    renderRegionOptions('c_region','');
+    await syncAllFromMonday(false);
+  } catch(e) {
+    showToast('Error: '+e.message, false);
+  } finally {
+    setProgress(0);
+  }
+}
+
+function openEditModal(itemId) {
+  const item = allItems.find(it=>it.id===itemId);
+  if(!item) return;
+  document.getElementById('editItemId').value = itemId;
+  document.getElementById('editItemName').value = item.name;
+  document.getElementById('e_motivo').value = getColVal(item,'status');
+  renderRegionOptions('e_region', getColVal(item,'color_mm7g7naz'));
+  document.getElementById('e_date4').value = getColVal(item,'date4');
+  const raw = getColRaw(item,'timerange_mm7gjxra');
+  if(raw){ try{ const tl=JSON.parse(raw); document.getElementById('e_timeline_from').value=tl.from||''; document.getElementById('e_timeline_to').value=tl.to||''; autoCalcDias('e'); }catch(ex){} }
+  const dias = getColVal(item,'numeric_mm7gf0nh');
+  document.getElementById('e_dias').value = dias;
+  const backup = getColVal(item,'text_mm7gxx4s');
+  if(backup && backup.includes(' - ')) {
+    const parts = backup.split(' - ');
+    document.getElementById('e_backup').value = parts[0];
+    document.getElementById('e_backup_email').value = parts[1]||'';
+  } else {
+    document.getElementById('e_backup').value = backup;
+    document.getElementById('e_backup_email').value = '';
+  }
+  document.getElementById('e_obs').value = getColVal(item,'text_mm7g4np1');
+  const _om = document.getElementById('e_obs_mgr'); if(_om) _om.value = getColVal(item,'text_mm821rme');
+  const estado = getColVal(item,'color_mm7gg2a7');
+  document.getElementById('aprStatus').innerHTML = estado ? '<strong>Estado:</strong> '+estado : 'Sin estado aun';
+  document.getElementById('editModal').classList.remove('hidden');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.add('hidden');
+}
+
+async function saveEditedItem(ev) {
+  ev.preventDefault();
+  const itemId = document.getElementById('editItemId').value;
+  const cols = buildColVals('e');
+  setProgress(30);
+  try {
+    const colJson = JSON.stringify(JSON.stringify(cols));
+    await mq('mutation { change_multiple_column_values(board_id:'+BOARD_ID+', item_id:'+itemId+', column_values:'+colJson+') { id } }');
+    setProgress(100);
+    showToast('Actualizado en Monday', true);
+    closeEditModal();
+    await syncAllFromMonday(false);
+  } catch(e) {
+    showToast('Error: '+e.message, false);
+  } finally {
+    setProgress(0);
+  }
+}
+
+async function deleteCurrentItem() {
+  const itemId = document.getElementById('editItemId').value;
+  if(!confirm('Eliminar esta solicitud del board?')) return;
+  try {
+    await mq('mutation { delete_item(item_id:'+itemId+') { id } }');
+    showToast('Eliminado', true);
+    closeEditModal();
+    await syncAllFromMonday(false);
+  } catch(e) {
+    showToast('Error: '+e.message, false);
+  }
+}
+
+function __reqAprPwd_live(action) {
+  pendingAprAction = action;
+  document.getElementById('aprPwdInput').value = '';
+  document.getElementById('aprPwdErr').style.display = 'none';
+  const m = document.getElementById('aprPwdModal');
+  m.style.display = 'flex';
+  setTimeout(()=>document.getElementById('aprPwdInput').focus(), 100);
+}
+
+function cancelAprPwd() {
+  document.getElementById('aprPwdModal').style.display = 'none';
+  pendingAprAction = null;
+}
+
+async function __confirmAprPwd_live() {
+  const pwd = document.getElementById('aprPwdInput').value;
+  if(pwd !== APR_PASSWORD) {
+    document.getElementById('aprPwdErr').textContent = 'Contrasena incorrecta.';
+    document.getElementById('aprPwdErr').style.display = 'block';
+    return;
+  }
+  document.getElementById('aprPwdModal').style.display = 'none';
+  const itemId = document.getElementById('editItemId').value;
+  const newIdx = pendingAprAction === 'approve' ? 1 : 2;
+  try {
+    await mq('mutation { change_multiple_column_values(board_id:'+BOARD_ID+', item_id:'+itemId+', column_values:"{\\"color_mm7gg2a7\\":{\\"index\\":'+newIdx+'}}") { id } }');
+    showToast(pendingAprAction==='approve' ? 'Aprobado en Monday' : 'Rechazado en Monday', true);
+    closeEditModal();
+    await syncAllFromMonday(false);
+  } catch(e) {
+    showToast('Error: '+e.message, false);
+  }
+  pendingAprAction = null;
+}
+
+function ausHandleFiles(files) {
+  ausFiles = [...ausFiles, ...Array.from(files)];
+  const list = document.getElementById('aus-file-list');
+  list.innerHTML = '';
+  ausFiles.forEach((f,i) => {
+    const d = document.createElement('div');
+    d.style.cssText = 'display:flex;align-items:center;justify-content:space-between;font-size:10px;padding:4px 8px;background:#f0f4ff;border-radius:6px;margin-bottom:3px;';
+    d.innerHTML = '<span style="color:#1e2a45;font-weight:600;">'+f.name+'</span><button type="button" onclick="ausRemoveFile('+i+')" style="color:#dc2626;font-weight:700;background:none;border:none;cursor:pointer;font-size:12px;">x</button>';
+    list.appendChild(d);
+  });
+}
+
+function ausRemoveFile(i) {
+  ausFiles.splice(i,1);
+  ausHandleFiles([]);
+}
+
+
+// Helper: calcula total días y estado por ADCAR en el cronograma
+function getAdcarTotals(items) {
+  const totals = {};
+  items.forEach(it => {
+    const nombre = it.name;
+    const dias = parseFloat(getColVal(it, 'numeric_mm7gf0nh')) || 0;
+    const estado = getColVal(it, 'color_mm7gg2a7') || '';
+    if (!totals[nombre]) totals[nombre] = { dias: 0, estado: '' };
+    totals[nombre].dias += dias;
+    totals[nombre].estado = estado; // último estado registrado
+  });
+  return totals;
+}
+
+function populateCalendar() {
+  const filter = document.getElementById('calendarFilterPerson').value;
+  const events = [];
+  allItems.forEach(it => {
+    if(filter !== 'ALL' && it.name !== filter) return;
+    const raw = getColRaw(it,'timerange_mm7gjxra');
+    if(!raw) return;
+    try {
+      const tl = JSON.parse(raw);
+      if(tl.from && tl.to) {
+        const est = getColVal(it,'color_mm7gg2a7');
+        const colors = {'Aprobado':'#059669','Rechazado':'#dc2626','En revision':'#f59e0b'};
+        events.push({title:it.name+' - '+(getColVal(it,'status')||''),start:tl.from,end:tl.to,color:colors[est]||'#0f62fe'});
+      }
+    } catch(ex){}
+  });
+  const cal = document.getElementById('calendar');
+  if(calInstance) calInstance.destroy();
+  calInstance = new FullCalendar.Calendar(cal, {
+    initialView:'dayGridMonth',
+    locale:'es',
+    headerToolbar:{left:'prev,next today',center:'title',right:'dayGridMonth,listMonth'},
+    events:events,
+    height:560,
+    eventClick: function(info) {
+      const item = allItems.find(it=>it.name===info.event.title.split(' - ')[0]);
+      if(item) openEditModal(item.id);
+    }
+  });
+  calInstance.render();
+}
+
+renderRegionOptions('c_region','');
+document.addEventListener('DOMContentLoaded', function() {
+  syncAllFromMonday(false);
+});
+
+/* Auto-refresh: trae cambios de Monday (p.ej. Observaciones Manager) cada 45 s */
+setInterval(async function(){
+  try{
+    if(document.hidden) return;
+    const m = document.getElementById('editModal');
+    if(m && !m.classList.contains('hidden')) return;
+    await syncAllFromMonday(false);
+    if(typeof filterTable === 'function') filterTable();
+  }catch(e){}
+}, 45000);
+
+function _obsEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function _obsNorm(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();}
+function _obsReadMap(k){try{return JSON.parse(localStorage.getItem(k)||'{}');}catch(e){return {};}}
+function _obsBanner(rows,fnName){
+  var h='<div style="background:#fff7ed;border:1px solid #fdba74;border-radius:10px;padding:12px 14px;margin-bottom:12px;">'
+    +'<div style="font-size:12px;font-weight:800;color:#9a3412;margin-bottom:6px;">&#9888; Tienes '+rows.length+(rows.length===1?' observaci&oacute;n':' observaciones')+' del manager por revisar</div>';
+  rows.forEach(function(r){
+    h+='<div style="background:#fff;border:1px solid #fed7aa;border-radius:8px;padding:8px 10px;margin-top:6px;">'
+      +'<div style="font-size:10px;color:#9a3412;font-weight:700;margin-bottom:2px;">'+_obsEsc(r.info)+'</div>'
+      +'<div style="font-size:12px;color:#1f2937;white-space:pre-wrap;">'+_obsEsc(r.obs)+'</div>'
+      +'<div style="text-align:right;margin-top:6px;"><button type="button" onclick="'+fnName+'(\''+_obsEsc(r.id)+'\')" style="font-size:10px;font-weight:700;padding:4px 10px;background:#ea580c;color:#fff;border:none;border-radius:6px;cursor:pointer;">Marcar como le&iacute;da</button></div>'
+      +'</div>';
+  });
+  return h+'</div>';
+}
+
+/* Alerta de Observaciones Manager para el colaborador (Ausencias) */
+function ausCheckObs(){
+  var box=document.getElementById('obsAlert'), inp=document.getElementById('c_adcar');
+  if(!box||!inp) return;
+  var q=_obsNorm(inp.value);
+  if(q.length<3||typeof allItems==='undefined'){box.style.display='none';box.innerHTML='';return;}
+  var read=_obsReadMap('obsRead_aus');
+  var rows=[];
+  allItems.forEach(function(it){
+    if(_obsNorm(it.name)!==q) return;
+    var obs=getColVal(it,'text_mm821rme');
+    if(!obs||read[it.id]===obs) return;
+    var info=(getColVal(it,'status')||'Ausencia');
+    var raw=getColRaw(it,'timerange_mm7gjxra');
+    if(raw){try{var tl=JSON.parse(raw);info+=' \u00b7 '+(tl.from||'')+' / '+(tl.to||'');}catch(e){}}
+    rows.push({id:it.id,obs:obs,info:info});
+  });
+  if(!rows.length){box.style.display='none';box.innerHTML='';return;}
+  box.innerHTML=_obsBanner(rows,'ausMarkObs');
+  box.style.display='block';
+}
+function ausMarkObs(id){
+  var it=allItems.find(function(x){return x.id===id;});
+  if(!it) return;
+  var r=_obsReadMap('obsRead_aus');
+  r[id]=getColVal(it,'text_mm821rme');
+  try{localStorage.setItem('obsRead_aus',JSON.stringify(r));}catch(e){}
+  ausCheckObs();
+}
+(function(){
+  function init(){var i=document.getElementById('c_adcar'); if(i) i.addEventListener('input',ausCheckObs);}
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
+</script>
+</body>
+</html>

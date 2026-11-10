@@ -1,0 +1,10 @@
+﻿node_modules/
+.env
+backups/
+fix_*.js
+public/
+*.log
+*.bat
+*.ps1
+
+fuente/
