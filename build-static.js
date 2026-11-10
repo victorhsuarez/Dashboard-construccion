@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 // Genera docs/ (sitio estatico, solo lectura) a partir de fuente/ y una foto de los tableros de Monday.
 //   Uso:  $env:ENV_PASSPHRASE='...'; node build-static.js
 //   (o con MONDAY_API_TOKEN definido, o con un .env local)
@@ -55,33 +55,16 @@ function repRe(src, re, to, label) {
   return src.replace(re, () => to);
 }
 
-// ---- Shim que responde las consultas de lectura con la foto y bloquea las escrituras
+// ---- Codigo inyectado (shim-template.js): foto incrustada + modo vivo con clave API del usuario
 function shim(snap, stamp, toastErr) {
   const data = JSON.stringify(snap).replace(/</g, '\\u003c').replace(/\u2028|\u2029/g, '');
-  return '<script>\n' +
-    'var __SNAP=' + data + ';\n' +
-    'var __STAMP=' + JSON.stringify(stamp) + ';\n' +
-    'function __roToast(m){try{showToast(m' + toastErr + ');}catch(e){alert(m);}}\n' +
-    'var __RO="Vista estatica de solo lectura: no se pueden guardar cambios.";\n' +
-    'async function mq(query){\n' +
-    '  query=String(query);\n' +
-    '  if(/^\\s*mutation/i.test(query)) throw new Error(__RO);\n' +
-    '  var m=query.match(/boards\\(ids:\\s*\\[?\\s*(\\d+)/); if(!m) throw new Error("Consulta no disponible en la vista estatica");\n' +
-    '  var b=__SNAP[m[1]]; if(!b) throw new Error("Tablero no incluido en la foto");\n' +
-    '  if(/columns\\s*\\{/.test(query)) return {boards:[{columns:b.columns}]};\n' +
-    '  var lim=(query.match(/limit:\\s*(\\d+)/)||[])[1]; var items=b.items.slice(0,lim?+lim:b.items.length);\n' +
-    '  var ids=(query.match(/column_values\\(ids:\\s*\\[([^\\]]*)\\]\\)/)||[])[1];\n' +
-    '  if(ids){ids=ids.split(",").map(function(s){return s.trim().replace(/"/g,"");});\n' +
-    '    items=items.map(function(it){return {id:it.id,name:it.name,group:it.group,column_values:it.column_values.filter(function(c){return ids.indexOf(c.id)>-1;})};});}\n' +
-    '  return {boards:[{items_page:{cursor:null,items:items}}]};\n' +
-    '}\n' +
-    'async function mup(){ throw new Error(__RO); }\n' +
-    'document.addEventListener("DOMContentLoaded",function(){\n' +
-    '  var d=document.createElement("div");\n' +
-    '  d.style.cssText="position:fixed;left:12px;bottom:12px;z-index:99999;background:#0f172a;color:#fff;padding:6px 12px;border-radius:999px;font:600 11px system-ui,sans-serif;opacity:.92;pointer-events:none";\n' +
-    '  d.textContent="Vista estatica \\u00b7 solo lectura \\u00b7 datos al "+__STAMP; document.body.appendChild(d);\n' +
-    '});\n' +
-    '</script>\n';
+  const tpl = fs.readFileSync(path.join(__dirname, 'shim-template.js'), 'utf8').replace(/^\uFEFF/, '');
+  const code = tpl
+    .replace('__SNAP_JSON__', () => data)
+    .replace('__STAMP_JSON__', () => JSON.stringify(stamp))
+    .replace('__TOAST_ERR__', () => toastErr);
+  if (/__(SNAP_JSON|STAMP_JSON|TOAST_ERR)__/.test(code)) throw new Error('Quedaron marcadores sin sustituir en shim-template.js');
+  return '<script>\n' + code + '\n</script>\n';
 }
 
 function injectShim(html, shimHtml) {
@@ -102,9 +85,9 @@ function buildActualizaciones(html, snap, stamp) {
   html = rep(html, 'function promptModAuth(', 'function __promptModAuth_live(', 'promptModAuth');
   const extra =
     '<script>\n' +
-    'function checkBackend(){var b=document.getElementById("backendBtn");if(b){b.textContent="Datos al "+__STAMP;b.classList.add("ok");}}\n' +
+    'function checkBackend(){var b=document.getElementById("backendBtn");if(b){b.textContent=__statusText();b.classList.add("ok");b.onclick=__openApiModal;}}\n' +
     'function reqLiderPwd(r){var v=r?r.value:"apr";\n' +
-    '  if(v==="mis"){__roToast("\\"Mis HE\\" requiere sesion de lider y no esta disponible en la vista estatica.");\n' +
+    '  if(v==="mis"){__roToast("\\"Mis HE\\" requiere sesion de lider y no esta disponible en esta pagina de solo lectura.");\n' +
     '    var c=document.querySelector(\'input[name="otr"][value="col"]\');if(c)c.checked=true;setOTRole("col");return;}\n' +
     '  setOTRole("apr");}\n' +
     'function reqModAuth(){__roToast("Vista de solo lectura: el acceso de lider esta deshabilitado.");}\n' +
