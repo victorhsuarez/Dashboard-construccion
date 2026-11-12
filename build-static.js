@@ -112,10 +112,11 @@ async function __needLeader(){
   if(!k){return "";}
   currentLider=k;return k;
 }
-/* Mis HE: la persona se identifica con su clave API (me{id name email}). Una HE es suya si:
-   (a) la creo ella con su clave (creator = ella) desde __HE_CUTOFF (antes se creaban con una clave compartida), o
+/* Mis HE: la persona se identifica con su clave API (me{id name email}). Se lee todo el historial de Monday (sin limite de fecha).
+   Una HE es suya si:
+   (a) la creo ella con su clave (creator = ella), salvo que ese creador haya registrado HE de 3 o mas ADCAR distintos
+       (clave compartida/proxy), o
    (b) el nombre escrito en el campo ADCAR de la HE contiene su nombre (2 o mas palabras de su nombre/correo). */
-var __HE_CUTOFF="2026-11-12T00:00:00Z";
 async function renderMisHE(silent){
   var c=document.getElementById("ot-mis-queue"); if(!c) return;
   function msg(t,col){c.innerHTML='<div style="text-align:center;padding:28px;color:'+(col||'var(--muted)')+';font-size:12px;">'+t+'</div>';}
@@ -134,17 +135,30 @@ async function renderMisHE(silent){
     };
     var lead=email&&Object.prototype.hasOwnProperty.call(__LEADERS,email)?__LEADERS[email].k:"";
     var cols='column_values(ids:["'+COL.aprobador+'","'+COL.estado_apr+'","'+COL.horas_extras+'","'+COL.comentarios_he+'","'+COL.obs_manager+'"]){id text}';
-    var data;
-    try{ data=await mq('{boards(ids:['+BOARD_A+']){items_page(limit:500){items{id name created_at creator{id} '+cols+'}}}}'); }
-    catch(e1){ data=await mq('{boards(ids:['+BOARD_A+']){items_page(limit:500){items{id name '+cols+'}}}}'); }
-    var items=(data&&data.boards&&data.boards[0]&&data.boards[0].items_page&&data.boards[0].items_page.items)||[];
+    async function fetchAll(f){
+      var d=await mq('{boards(ids:['+BOARD_A+']){items_page(limit:500){cursor items{id name '+f+cols+'}}}}');
+      var pg=(d&&d.boards&&d.boards[0]&&d.boards[0].items_page)||{items:[]}, all=(pg.items||[]).slice(), n=0;
+      while(pg.cursor&&n++<40){
+        var d2=await mq('{next_items_page(limit:500,cursor:"'+pg.cursor+'"){cursor items{id name '+f+cols+'}}}');
+        pg=(d2&&d2.next_items_page)||{items:[]}; all=all.concat(pg.items||[]);
+      }
+      return all;
+    }
+    var items;
+    try{ items=await fetchAll("creator{id} "); }
+    catch(e1){ items=await fetchAll(""); }
+    var isHE=function(it){return it.name&&it.name.indexOf("HE \\u00b7")===0;};
+    var byCreator={};
+    items.forEach(function(it){ if(isHE(it)&&it.creator){ var k=String(it.creator.id); (byCreator[k]=byCreator[k]||{})[norm(it.name.split("\\u00b7")[1]||"")]=1; } });
+    var meShared=who.id&&byCreator[String(who.id)]&&Object.keys(byCreator[String(who.id)]).length>=3;
     var mine=items.filter(function(it){
-      if(!it.name||it.name.indexOf("HE \\u00b7")!==0) return false;
-      if(it.creator&&who.id&&String(it.creator.id)===String(who.id)&&String(it.created_at||"")>=__HE_CUTOFF) return true;
+      if(!isHE(it)) return false;
+      if(!meShared&&it.creator&&who.id&&String(it.creator.id)===String(who.id)) return true;
       var a=norm(it.name.split("\\u00b7")[1]||""), words=a.split(/[^a-z0-9]+/);
       if(email&&a===email) return true;
       if(lead&&LM[lead](words)) return true;
-      return toks.length>=2&&toks.every(function(t){return words.indexOf(t)>-1;});
+      var w2=words.filter(function(w){return w.length>1&&/^[a-z]+$/.test(w);});
+      return (toks.length>=2&&toks.every(function(t){return words.indexOf(t)>-1;}))||(w2.length>=2&&w2.every(function(w){return toks.indexOf(w)>-1;}));
     }).sort(function(x,y){return String(y.name.split("\\u00b7")[2]||"").localeCompare(String(x.name.split("\\u00b7")[2]||""));});
     if(!mine.length){msg("\\ud83d\\udced No hay HE registradas a tu nombre en Monday.");return;}
     var sc={pending:"sb-pend",approved:"sb-ok",rejected:"sb-err"};
