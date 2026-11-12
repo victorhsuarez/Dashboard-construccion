@@ -4,14 +4,15 @@
    Con clave API: consulta y escribe directo en api.monday.com desde el navegador, con los permisos de esa clave. */
 var __SNAP = __SNAP_JSON__;
 var __STAMP = __STAMP_JSON__;
-var __LEADERS = __LEADERS_JSON__; // correo (minusculas) -> PEREZ | SUAREZ | VARON
+var __LEADERS = __LEADERS_JSON__; // correo (minusculas) -> {k: PEREZ|SUAREZ|VARON, s: sal, h: huella PBKDF2 del PIN, i: iteraciones}
 var __NOKEY = 'Conecta tu clave API (boton \uD83D\uDD11 abajo a la izquierda) para guardar cambios en Monday.';
 var __TK_KEY = 'monday_api_key';
 var __USER_KEY = 'monday_user';
+var __PIN_KEY = 'monday_pin_ok';
 var __state = 'snap'; // snap | live | offline | badkey
 
 function __tok() { try { return sessionStorage.getItem(__TK_KEY) || ''; } catch (e) { return ''; } }
-function __clearTok() { try { sessionStorage.removeItem(__TK_KEY); sessionStorage.removeItem(__USER_KEY); } catch (e) {} }
+function __clearTok() { try { sessionStorage.removeItem(__TK_KEY); sessionStorage.removeItem(__USER_KEY); sessionStorage.removeItem(__PIN_KEY); } catch (e) {} }
 function __roToast(m) { try { showToast(m__TOAST_ERR__); } catch (e) { alert(m); } }
 
 function __statusText() {
@@ -104,14 +105,69 @@ async function mup(itemId, columnId, file) {
 }
 
 /* ---- Identidad: se consulta a Monday en cada verificacion (correo del dueno de la clave) ---- */
-async function __leaderKey() {
+async function __leaderRec() {
   var t = __tok();
-  if (!t) return '';
+  if (!t) return null;
   try {
     var d = await __liveQuery('{me{email}}', t);
     var email = String((d && d.me && d.me.email) || '').trim().toLowerCase();
-    return (email && Object.prototype.hasOwnProperty.call(__LEADERS, email)) ? __LEADERS[email] : '';
-  } catch (e) { return ''; }
+    return (email && Object.prototype.hasOwnProperty.call(__LEADERS, email)) ? { email: email, rec: __LEADERS[email] } : null;
+  } catch (e) { return null; }
+}
+/* Solo por correo (sin PIN): PEREZ | SUAREZ | VARON | '' */
+async function __leaderKey() { var r = await __leaderRec(); return r ? r.rec.k : ''; }
+
+/* ---- Segundo factor: PIN propio de cada lider (se compara una huella PBKDF2, el PIN no se publica) ---- */
+async function __pbkdf2(pin, saltB64, iter) {
+  var salt = Uint8Array.from(atob(saltB64), function (c) { return c.charCodeAt(0); });
+  var km = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveBits']);
+  var bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: salt, iterations: iter }, km, 256);
+  return btoa(String.fromCharCode.apply(null, new Uint8Array(bits)));
+}
+function __askPin(who) {
+  return new Promise(function (resolve) {
+    var ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100001;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif';
+    var box = document.createElement('div');
+    box.style.cssText = 'background:#fff;color:#0f172a;border-radius:12px;padding:20px;width:min(380px,92vw);box-shadow:0 10px 40px rgba(0,0,0,.3)';
+    box.innerHTML = '<div style="font-size:15px;font-weight:700;margin-bottom:6px">PIN de l\u00edder</div>' +
+      '<div style="font-size:12px;color:#475569;line-height:1.5;margin-bottom:10px">Escribe tu PIN personal para continuar (' + who + ').</div>';
+    var inp = document.createElement('input');
+    inp.type = 'password'; inp.autocomplete = 'off'; inp.placeholder = 'PIN';
+    inp.style.cssText = 'width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;margin-bottom:12px';
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:8px;justify-content:flex-end';
+    function b(t, bg, fg) { var x = document.createElement('button'); x.type = 'button'; x.textContent = t; x.style.cssText = 'padding:8px 14px;border-radius:8px;border:1px solid #cbd5e1;font-size:12px;font-weight:600;cursor:pointer;background:' + bg + ';color:' + fg; return x; }
+    var bc = b('Cancelar', '#fff', '#334155'), bo = b('Aceptar', '#0f62fe', '#fff');
+    function done(v) { ov.remove(); resolve(v); }
+    bc.onclick = function () { done(null); };
+    bo.onclick = function () { done(inp.value); };
+    inp.onkeydown = function (ev) { if (ev.key === 'Enter') done(inp.value); if (ev.key === 'Escape') done(null); };
+    row.appendChild(bc); row.appendChild(bo); box.appendChild(inp); box.appendChild(row); ov.appendChild(box);
+    document.body.appendChild(ov); inp.focus();
+  });
+}
+var __pinFails = 0, __pinLockUntil = 0;
+/* Devuelve la clave de lider solo si el correo esta autorizado Y el PIN es correcto; si no, avisa y devuelve ''. */
+async function __leaderAuth() {
+  var r = await __leaderRec();
+  if (!r) { __roToast('Solo los lideres autorizados pueden hacer esta accion.'); return ''; }
+  var mark = r.email + '|' + r.rec.h;
+  try { if (sessionStorage.getItem(__PIN_KEY) === mark) return r.rec.k; } catch (e) {}
+  if (!(window.crypto && crypto.subtle)) { __roToast('Tu navegador no permite verificar el PIN (se requiere HTTPS).'); return ''; }
+  if (Date.now() < __pinLockUntil) { __roToast('Demasiados intentos. Espera un minuto.'); return ''; }
+  var pin = await __askPin(r.rec.k);
+  if (pin === null) return '';
+  var h = '';
+  try { h = await __pbkdf2(pin, r.rec.s, r.rec.i); } catch (e) { __roToast('No se pudo verificar el PIN.'); return ''; }
+  if (h !== r.rec.h) {
+    if (++__pinFails >= 5) { __pinFails = 0; __pinLockUntil = Date.now() + 60000; }
+    __roToast('PIN incorrecto.');
+    return '';
+  }
+  __pinFails = 0;
+  try { sessionStorage.setItem(__PIN_KEY, mark); } catch (e) {}
+  return r.rec.k;
 }
 
 function __openApiModal() {

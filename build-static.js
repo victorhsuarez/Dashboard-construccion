@@ -7,17 +7,27 @@ const fs    = require('fs');
 const path  = require('path');
 const fetch = require('node-fetch');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
-if (!process.env.MONDAY_API_TOKEN) {
+// --reusar-foto: no consulta Monday; reutiliza la foto ya incrustada en docs/ (no necesita token).
+const REUSE = process.argv.includes('--reusar-foto');
+if (!REUSE && !process.env.MONDAY_API_TOKEN) {
   require('./envcrypt').loadEncryptedEnv(path.join(__dirname, '.env.enc'), process.env.ENV_PASSPHRASE);
 }
 const TOKEN = process.env.MONDAY_API_TOKEN;
-if (!TOKEN) { console.error('Falta MONDAY_API_TOKEN (o ENV_PASSPHRASE para .env.enc).'); process.exit(1); }
+if (!REUSE && !TOKEN) { console.error('Falta MONDAY_API_TOKEN (o ENV_PASSPHRASE para .env.enc).'); process.exit(1); }
 
 const SRC = path.join(__dirname, 'fuente');
 const OUT = path.join(__dirname, 'docs');
 const BOARDS = { A: '18432741374', M: '18433232131', AUS: '18432588237' };
 // Lideres autorizados (correo en minusculas -> clave). Solo ellos acceden a Aprobador, edicion de Modalidad y aprobacion.
-const LEADERS = { 'victor.h.suarez@ibm.com': 'SUAREZ', 'jesus.perez1@ibm.com': 'PEREZ', 'angie.varon@ibm.com': 'VARON' };
+const LEADER_EMAILS = { 'victor.h.suarez@ibm.com': 'SUAREZ', 'jesus.perez1@ibm.com': 'PEREZ', 'angie.varon@ibm.com': 'VARON' };
+// Cada lider tiene su propio PIN (huella en lideres-pin.json, creada con leader-pin.js). Si falta, el build se detiene.
+const PINS = JSON.parse(fs.readFileSync(path.join(__dirname, 'lideres-pin.json'), 'utf8'));
+const LEADERS = {};
+Object.keys(LEADER_EMAILS).forEach(email => {
+  const k = LEADER_EMAILS[email];
+  if (!PINS[k]) { console.error('Falta el PIN de ' + k + '. Ejecuta: node leader-pin.js ' + k); process.exit(1); }
+  LEADERS[email] = { k: k, s: PINS[k].s, h: PINS[k].h, i: PINS[k].i };
+});
 // Datos de Horas Extras: no se incrustan en la foto publica (solo se ven en vivo, tras validar al lider).
 const HE_COLS = ['numeric_mm7mrmr6', 'text_mm7my82t', 'text_mm82xpzv', 'color_mm7mtfss', 'color_mm7mtv3w', 'timerange_mm7m57ra'];
 
@@ -93,8 +103,8 @@ function buildActualizaciones(html, snap, stamp) {
 function checkBackend(){var b=document.getElementById("backendBtn");if(b){b.textContent=__statusText();b.classList.add("ok");b.onclick=__openApiModal;}}
 async function __needLeader(){
   if(!__tok()){__roToast("Conecta tu clave API (boton de abajo a la izquierda) para continuar.");return "";}
-  var k=await __leaderKey();
-  if(!k){__roToast("Solo los lideres autorizados pueden hacer esta accion.");return "";}
+  var k=await __leaderAuth();
+  if(!k){return "";}
   currentLider=k;return k;
 }
 async function reqLiderPwd(r){
@@ -128,6 +138,7 @@ function buildAusencias(html, snap, stamp) {
 async function reqAprPwd(action){
   if(!__tok()){__roToast("Conecta tu clave API (boton de abajo a la izquierda) para continuar.");return;}
   if((await __leaderKey())!=="VARON"){__roToast("Solo Anlli Liliana Varon puede aprobar o rechazar.");return;}
+  if(!(await __leaderAuth())){return;}
   pendingAprAction=action;
   document.getElementById("aprPwdInput").value="";
   await __confirmAprPwd_live();
@@ -140,16 +151,29 @@ async function confirmAprPwd(){}
 
 (async function main() {
   const read = f => fs.readFileSync(path.join(SRC, f), 'utf8').replace(/^\uFEFF/, '');
-  const snap = {};
-  for (const k of Object.keys(BOARDS)) {
-    snap[BOARDS[k]] = await fetchBoard(BOARDS[k]);
-    console.log('Tablero ' + BOARDS[k] + ': ' + snap[BOARDS[k]].items.length + ' items, ' + snap[BOARDS[k]].columns.length + ' columnas');
+  let snap = {};
+  let reusedStamp = null;
+  if (REUSE) {
+    ['dashboard_actualizaciones.html', 'dashboard_ausencias.html'].forEach(f => {
+      const h = fs.readFileSync(path.join(OUT, f), 'utf8');
+      const m = h.match(/^var __SNAP = (.*);\r?$/m), s = h.match(/^var __STAMP = (.*);\r?$/m);
+      if (!m || !s) throw new Error('No se pudo leer la foto de docs/' + f);
+      Object.assign(snap, JSON.parse(m[1]));
+      reusedStamp = JSON.parse(s[1]);
+    });
+    Object.keys(BOARDS).forEach(k => { if (!snap[BOARDS[k]]) throw new Error('Falta el tablero ' + BOARDS[k] + ' en la foto'); });
+    console.log('Foto reutilizada de docs/ (' + reusedStamp + ')');
+  } else {
+    for (const k of Object.keys(BOARDS)) {
+      snap[BOARDS[k]] = await fetchBoard(BOARDS[k]);
+      console.log('Tablero ' + BOARDS[k] + ': ' + snap[BOARDS[k]].items.length + ' items, ' + snap[BOARDS[k]].columns.length + ' columnas');
+    }
   }
   // Quitar de la foto publica las HE (items "HE ...") y sus columnas
   const boardA = snap[BOARDS.A];
   boardA.items = boardA.items.filter(it => !/^HE\b/i.test(it.name));
   boardA.items.forEach(it => { it.column_values = it.column_values.filter(cv => HE_COLS.indexOf(cv.id) < 0); });
-  const stamp = new Date().toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
+  const stamp = REUSE ? reusedStamp : new Date().toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
 
   const act = buildActualizaciones(read('dashboard_actualizaciones.html'), { [BOARDS.A]: snap[BOARDS.A], [BOARDS.M]: snap[BOARDS.M] }, stamp);
   const aus = buildAusencias(read('dashboard_ausencias.html'), { [BOARDS.AUS]: snap[BOARDS.AUS] }, stamp);
@@ -167,7 +191,7 @@ async function confirmAprPwd(){}
   [['dashboard_actualizaciones.html', act], ['dashboard_ausencias.html', aus], ['index.html', portal]].forEach(([n, h]) => {
     if (/localhost:3000|MONDAY_API_TOKEN/.test(h)) throw new Error('Contenido sensible en ' + n);
     secrets.forEach(s => { if (h.includes(s)) throw new Error('Una contrasena aparece en ' + n); });
-    if (h.includes(TOKEN)) throw new Error('El token aparece en ' + n);
+    if (TOKEN && h.includes(TOKEN)) throw new Error('El token aparece en ' + n);
   });
 
   fs.mkdirSync(OUT, { recursive: true });
