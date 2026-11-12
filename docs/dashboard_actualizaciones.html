@@ -408,8 +408,54 @@ async function __needLeader(){
   if(!k){return "";}
   currentLider=k;return k;
 }
+async function renderMisHE(silent){
+  var c=document.getElementById("ot-mis-queue"); if(!c) return;
+  var inp=document.getElementById("ot-mis-adcar");
+  function msg(t,col){c.innerHTML='<div style="text-align:center;padding:28px;color:'+(col||'var(--muted)')+';font-size:12px;">'+t+'</div>';}
+  if(inp&&!inp.value){
+    var f=document.getElementById("ot-adcar"), sv="";
+    try{sv=localStorage.getItem("mis_he_adcar")||"";}catch(e){}
+    inp.value=(f&&f.value.trim())||sv;
+  }
+  if(!__tok()){msg("Conecta tu clave API (bot\u00f3n \ud83d\udd11 de abajo a la izquierda) para consultar tus HE.");return;}
+  var norm=function(s){return (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim();};
+  var q=norm(inp?inp.value:"");
+  var lead=await __leaderRec();
+  var LM={
+    PEREZ:function(s){return s.indexOf("jesus")>-1&&s.indexOf("perez")>-1;},
+    SUAREZ:function(s){return s.indexOf("victor")>-1&&s.indexOf("suarez")>-1;},
+    VARON:function(s){return s.indexOf("anlli")>-1&&s.indexOf("varon")>-1;}
+  };
+  if(!q&&!lead){msg("Escribe tu ADCAR y pulsa \u00abVer mis HE\u00bb.");return;}
+  if(q){try{localStorage.setItem("mis_he_adcar",inp.value.trim());}catch(e){}}
+  if(silent!==true) msg("\u23f3 Cargando\u2026");
+  try{
+    var data=await mq('{boards(ids:['+BOARD_A+']){items_page(limit:500){items{id name column_values(ids:["'+COL.aprobador+'","'+COL.estado_apr+'","'+COL.horas_extras+'","'+COL.comentarios_he+'","'+COL.obs_manager+'"]){id text}}}}}');
+    var items=(data&&data.boards&&data.boards[0]&&data.boards[0].items_page&&data.boards[0].items_page.items)||[];
+    var mine=items.filter(function(it){
+      if(!it.name||it.name.indexOf("HE \u00b7")!==0) return false;
+      var a=norm(it.name.split("\u00b7")[1]||"");
+      return (q&&a===q)||(lead&&LM[lead.rec.k]&&LM[lead.rec.k](a));
+    }).sort(function(x,y){return String(y.name.split("\u00b7")[2]||"").localeCompare(String(x.name.split("\u00b7")[2]||""));});
+    if(!mine.length){msg("\ud83d\udced No hay HE registradas con ese ADCAR en Monday.");return;}
+    var sc={pending:"sb-pend",approved:"sb-ok",rejected:"sb-err"};
+    c.innerHTML=mine.map(function(it){
+      var cv={};it.column_values.forEach(function(col){cv[col.id]=col.text||"";});
+      var est=cv[COL.estado_apr]||"En revisi\u00f3n", st="pending", ne=norm(est);
+      if(ne.indexOf("aprobac")>-1||ne.indexOf("aprobad")>-1) st="approved"; else if(ne.indexOf("rechazad")>-1) st="rejected";
+      var p=it.name.split("\u00b7").map(function(s){return s.trim();});
+      return '<div class="req" style="margin-bottom:10px;"><div class="rh"><div><div class="rn">'+_obsEsc(p[1]||"\u2014")+' \u00b7 '+_obsEsc(p[2]||"\u2014")+'</div>'+
+        '<div class="rm"><strong>'+_obsEsc(cv[COL.horas_extras]||"\u2014")+'h</strong> \u00b7 Aprobador: '+_obsEsc(cv[COL.aprobador]||"\u2014")+'</div></div>'+
+        '<span class="sb '+sc[st]+'">'+_obsEsc(est)+'</span></div>'+
+        '<div class="rr">"'+_obsEsc(cv[COL.comentarios_he]||"")+'"</div>'+
+        (cv[COL.obs_manager]?'<div style="font-size:11px;color:#7c3aed;margin-top:4px;"><strong>Obs. Manager:</strong> '+_obsEsc(cv[COL.obs_manager])+'</div>':'')+'</div>';
+    }).join("");
+  }catch(err){msg("\u274c Error: "+_obsEsc(err.message),"var(--danger)");}
+}
+setInterval(function(){try{if(!document.hidden&&otRole==="mis") renderMisHE(true);}catch(e){}},45000);
 async function reqLiderPwd(r){
   var v=r?r.value:"apr";
+  if(v==="mis"){setOTRole("mis");return;}
   if(await __needLeader()){setOTRole(v);}
   else{var c=document.querySelector('input[name="otr"][value="col"]');if(c)c.checked=true;setOTRole("col");}
 }
@@ -684,11 +730,12 @@ async function promptModAuth(id){if(await __needLeader()){setModLiderAuth(true);
 
   <!-- Panel Mis HE (líder como colaborador) -->
   <div class="g" id="ot-mis" style="display:none;padding:22px;margin-top:16px;">
-    <h3 style="font-size:14px;font-weight:700;margin-bottom:14px;">📊 Mis Horas Extras enviadas a Anlli Liliana Varón</h3>
+    <h3 style="font-size:14px;font-weight:700;margin-bottom:14px;">📊 Mis Horas Extras enviadas</h3>
     <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Estado de tus solicitudes enviadas para aprobación.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;"><input type="text" id="ot-mis-adcar" class="fi" placeholder="Tu ADCAR (el mismo que usas al enviar la solicitud)" style="max-width:340px;" onkeydown="if(event.key==='Enter')renderMisHE()"/><button class="btn btn-p" type="button" onclick="renderMisHE()">Ver mis HE</button></div>
     <div id="ot-mis-queue"><div style="text-align:center;padding:28px;color:var(--muted);font-size:12px;">📭 Sin solicitudes</div></div>
     <div style="margin-top:12px;">
-      <button class="btn btn-s" onclick="syncOTFromMonday()">
+      <button class="btn btn-s" onclick="renderMisHE()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Actualizar desde Monday
       </button>
@@ -1322,7 +1369,7 @@ async function resolveOT(id,status){
     }
   }
 }
-async function renderMisHE(silent){
+async function __renderMisHE_live(silent){
   const c=document.getElementById('ot-mis-queue');
   if(!c||!currentLider) return;
   if(silent!==true) c.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;">⏳ Cargando…</div>';

@@ -98,6 +98,12 @@ function buildActualizaciones(html, snap, stamp) {
   html = rep(html, 'function reqModAuth(', 'function __reqModAuth_live(', 'reqModAuth');
   html = rep(html, 'function reqModPwd(', 'function __reqModPwd_live(', 'reqModPwd');
   html = rep(html, 'function promptModAuth(', 'function __promptModAuth_live(', 'promptModAuth');
+  html = rep(html, 'async function renderMisHE(', 'async function __renderMisHE_live(', 'renderMisHE');
+  // "Mis HE enviadas": abierto a todo el equipo. Se agrega buscador por ADCAR y el boton usa la nueva vista.
+  html = rep(html, 'enviadas a Anlli Liliana Var\u00f3n</h3>', 'enviadas</h3>', 'titulo Mis HE');
+  html = repRe(html, /<div id="ot-mis-queue">/, '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;"><input type="text" id="ot-mis-adcar" class="fi" placeholder="Tu ADCAR (el mismo que usas al enviar la solicitud)" style="max-width:340px;" onkeydown="if(event.key===\'Enter\')renderMisHE()"/><button class="btn btn-p" type="button" onclick="renderMisHE()">Ver mis HE</button></div>\n    <div id="ot-mis-queue">', 'buscador Mis HE');
+  html = html.replace(/(<div id="ot-mis-queue">[\s\S]*?<button class="btn btn-s" onclick=")syncOTFromMonday\(\)(")/, (m, a, b) => a + 'renderMisHE()' + b);
+  if (!/onclick="renderMisHE\(\)">\s*<svg/.test(html)) throw new Error('No se pudo cambiar el boton del panel Mis HE');
   // Las acciones de lider se habilitan por identidad en Monday (dueno de la clave API), sin contrasenas.
   const extra = `<script>
 function checkBackend(){var b=document.getElementById("backendBtn");if(b){b.textContent=__statusText();b.classList.add("ok");b.onclick=__openApiModal;}}
@@ -107,8 +113,54 @@ async function __needLeader(){
   if(!k){return "";}
   currentLider=k;return k;
 }
+async function renderMisHE(silent){
+  var c=document.getElementById("ot-mis-queue"); if(!c) return;
+  var inp=document.getElementById("ot-mis-adcar");
+  function msg(t,col){c.innerHTML='<div style="text-align:center;padding:28px;color:'+(col||'var(--muted)')+';font-size:12px;">'+t+'</div>';}
+  if(inp&&!inp.value){
+    var f=document.getElementById("ot-adcar"), sv="";
+    try{sv=localStorage.getItem("mis_he_adcar")||"";}catch(e){}
+    inp.value=(f&&f.value.trim())||sv;
+  }
+  if(!__tok()){msg("Conecta tu clave API (bot\\u00f3n \\ud83d\\udd11 de abajo a la izquierda) para consultar tus HE.");return;}
+  var norm=function(s){return (s||"").toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/\\s+/g," ").trim();};
+  var q=norm(inp?inp.value:"");
+  var lead=await __leaderRec();
+  var LM={
+    PEREZ:function(s){return s.indexOf("jesus")>-1&&s.indexOf("perez")>-1;},
+    SUAREZ:function(s){return s.indexOf("victor")>-1&&s.indexOf("suarez")>-1;},
+    VARON:function(s){return s.indexOf("anlli")>-1&&s.indexOf("varon")>-1;}
+  };
+  if(!q&&!lead){msg("Escribe tu ADCAR y pulsa \\u00abVer mis HE\\u00bb.");return;}
+  if(q){try{localStorage.setItem("mis_he_adcar",inp.value.trim());}catch(e){}}
+  if(silent!==true) msg("\\u23f3 Cargando\\u2026");
+  try{
+    var data=await mq('{boards(ids:['+BOARD_A+']){items_page(limit:500){items{id name column_values(ids:["'+COL.aprobador+'","'+COL.estado_apr+'","'+COL.horas_extras+'","'+COL.comentarios_he+'","'+COL.obs_manager+'"]){id text}}}}}');
+    var items=(data&&data.boards&&data.boards[0]&&data.boards[0].items_page&&data.boards[0].items_page.items)||[];
+    var mine=items.filter(function(it){
+      if(!it.name||it.name.indexOf("HE \\u00b7")!==0) return false;
+      var a=norm(it.name.split("\\u00b7")[1]||"");
+      return (q&&a===q)||(lead&&LM[lead.rec.k]&&LM[lead.rec.k](a));
+    }).sort(function(x,y){return String(y.name.split("\\u00b7")[2]||"").localeCompare(String(x.name.split("\\u00b7")[2]||""));});
+    if(!mine.length){msg("\\ud83d\\udced No hay HE registradas con ese ADCAR en Monday.");return;}
+    var sc={pending:"sb-pend",approved:"sb-ok",rejected:"sb-err"};
+    c.innerHTML=mine.map(function(it){
+      var cv={};it.column_values.forEach(function(col){cv[col.id]=col.text||"";});
+      var est=cv[COL.estado_apr]||"En revisi\\u00f3n", st="pending", ne=norm(est);
+      if(ne.indexOf("aprobac")>-1||ne.indexOf("aprobad")>-1) st="approved"; else if(ne.indexOf("rechazad")>-1) st="rejected";
+      var p=it.name.split("\\u00b7").map(function(s){return s.trim();});
+      return '<div class="req" style="margin-bottom:10px;"><div class="rh"><div><div class="rn">'+_obsEsc(p[1]||"\\u2014")+' \\u00b7 '+_obsEsc(p[2]||"\\u2014")+'</div>'+
+        '<div class="rm"><strong>'+_obsEsc(cv[COL.horas_extras]||"\\u2014")+'h</strong> \\u00b7 Aprobador: '+_obsEsc(cv[COL.aprobador]||"\\u2014")+'</div></div>'+
+        '<span class="sb '+sc[st]+'">'+_obsEsc(est)+'</span></div>'+
+        '<div class="rr">"'+_obsEsc(cv[COL.comentarios_he]||"")+'"</div>'+
+        (cv[COL.obs_manager]?'<div style="font-size:11px;color:#7c3aed;margin-top:4px;"><strong>Obs. Manager:</strong> '+_obsEsc(cv[COL.obs_manager])+'</div>':'')+'</div>';
+    }).join("");
+  }catch(err){msg("\\u274c Error: "+_obsEsc(err.message),"var(--danger)");}
+}
+setInterval(function(){try{if(!document.hidden&&otRole==="mis") renderMisHE(true);}catch(e){}},45000);
 async function reqLiderPwd(r){
   var v=r?r.value:"apr";
+  if(v==="mis"){setOTRole("mis");return;}
   if(await __needLeader()){setOTRole(v);}
   else{var c=document.querySelector('input[name="otr"][value="col"]');if(c)c.checked=true;setOTRole("col");}
 }
