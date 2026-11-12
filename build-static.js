@@ -16,6 +16,11 @@ if (!TOKEN) { console.error('Falta MONDAY_API_TOKEN (o ENV_PASSPHRASE para .env.
 const SRC = path.join(__dirname, 'fuente');
 const OUT = path.join(__dirname, 'docs');
 const BOARDS = { A: '18432741374', M: '18433232131', AUS: '18432588237' };
+// Lideres autorizados (correo en minusculas -> clave). Solo ellos acceden a Aprobador, edicion de Modalidad y aprobacion.
+// Agregar aqui los correos de Perez ('PEREZ') y Varon ('VARON') cuando se tengan.
+const LEADERS = { 'victor.h.suarez@ibm.com': 'SUAREZ' };
+// Datos de Horas Extras: no se incrustan en la foto publica (solo se ven en vivo, tras validar al lider).
+const HE_COLS = ['numeric_mm7mrmr6', 'text_mm7my82t', 'text_mm82xpzv', 'color_mm7mtfss', 'color_mm7mtv3w', 'timerange_mm7m57ra'];
 
 async function gql(query) {
   const r = await fetch('https://api.monday.com/v2', {
@@ -62,8 +67,9 @@ function shim(snap, stamp, toastErr) {
   const code = tpl
     .replace('__SNAP_JSON__', () => data)
     .replace('__STAMP_JSON__', () => JSON.stringify(stamp))
+    .replace('__LEADERS_JSON__', () => JSON.stringify(LEADERS))
     .replace('__TOAST_ERR__', () => toastErr);
-  if (/__(SNAP_JSON|STAMP_JSON|TOAST_ERR)__/.test(code)) throw new Error('Quedaron marcadores sin sustituir en shim-template.js');
+  if (/__(SNAP_JSON|STAMP_JSON|TOAST_ERR|LEADERS_JSON)__/.test(code)) throw new Error('Quedaron marcadores sin sustituir en shim-template.js');
   return '<script>\n' + code + '\n</script>\n';
 }
 
@@ -89,14 +95,15 @@ function checkBackend(){var b=document.getElementById("backendBtn");if(b){b.text
 async function __needLeader(){
   if(!__tok()){__roToast("Conecta tu clave API (boton de abajo a la izquierda) para continuar.");return "";}
   var k=await __leaderKey();
-  if(!k){__roToast("Solo los lideres (Perez, Suarez, Varon) pueden hacer esta accion.");return "";}
+  if(!k){__roToast("Solo los lideres autorizados pueden hacer esta accion.");return "";}
   currentLider=k;return k;
 }
 async function reqLiderPwd(r){
   var v=r?r.value:"apr";
   if(await __needLeader()){setOTRole(v);}
-  else{var c=document.querySelector('input[name="otr"][value="col"]');if(c)c.checked=true;}
+  else{var c=document.querySelector('input[name="otr"][value="col"]');if(c)c.checked=true;setOTRole("col");}
 }
+document.addEventListener("DOMContentLoaded",function(){setTimeout(function(){setOTRole("col");},0);});
 async function reqModAuth(){
   if(modLiderAuth){if(confirm("\\u00bfCerrar la sesi\\u00f3n de l\\u00edder?")){setModLiderAuth(false);}return;}
   if(await __needLeader()){setModLiderAuth(true);}
@@ -139,6 +146,10 @@ async function confirmAprPwd(){}
     snap[BOARDS[k]] = await fetchBoard(BOARDS[k]);
     console.log('Tablero ' + BOARDS[k] + ': ' + snap[BOARDS[k]].items.length + ' items, ' + snap[BOARDS[k]].columns.length + ' columnas');
   }
+  // Quitar de la foto publica las HE (items "HE ...") y sus columnas
+  const boardA = snap[BOARDS.A];
+  boardA.items = boardA.items.filter(it => !/^HE\b/i.test(it.name));
+  boardA.items.forEach(it => { it.column_values = it.column_values.filter(cv => HE_COLS.indexOf(cv.id) < 0); });
   const stamp = new Date().toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
 
   const act = buildActualizaciones(read('dashboard_actualizaciones.html'), { [BOARDS.A]: snap[BOARDS.A], [BOARDS.M]: snap[BOARDS.M] }, stamp);

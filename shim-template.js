@@ -1,9 +1,10 @@
-﻿/* Plantilla del codigo que se inyecta en las paginas publicadas.
-   build-static.js sustituye los tres marcadores en mayuscula (SNAP, STAMP y TOAST) rodeados de guiones bajos.
+/* Plantilla del codigo que se inyecta en las paginas publicadas.
+   build-static.js sustituye los cuatro marcadores en mayuscula (SNAP, STAMP, TOAST y LEADERS) rodeados de guiones bajos.
    Sin clave API: responde con la foto incrustada (solo lectura).
    Con clave API: consulta y escribe directo en api.monday.com desde el navegador, con los permisos de esa clave. */
 var __SNAP = __SNAP_JSON__;
 var __STAMP = __STAMP_JSON__;
+var __LEADERS = __LEADERS_JSON__; // correo (minusculas) -> PEREZ | SUAREZ | VARON
 var __NOKEY = 'Conecta tu clave API (boton \uD83D\uDD11 abajo a la izquierda) para guardar cambios en Monday.';
 var __TK_KEY = 'monday_api_key';
 var __USER_KEY = 'monday_user';
@@ -102,22 +103,15 @@ async function mup(itemId, columnId, file) {
   return { success: true };
 }
 
-/* ---- Identidad: quien es el dueno de la clave (para las acciones de lider) ---- */
-async function __me() {
-  var n = '';
-  try { n = sessionStorage.getItem(__USER_KEY) || ''; } catch (e) {}
-  if (!n && __tok()) {
-    try { var d = await __liveQuery('{me{name}}', __tok()); n = d.me.name; sessionStorage.setItem(__USER_KEY, n); } catch (e) {}
-  }
-  return n;
-}
-function __norm(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+/* ---- Identidad: se consulta a Monday en cada verificacion (correo del dueno de la clave) ---- */
 async function __leaderKey() {
-  var n = __norm(await __me());
-  if (n.indexOf('jesus') > -1 && n.indexOf('perez') > -1) return 'PEREZ';
-  if (n.indexOf('victor') > -1 && n.indexOf('suarez') > -1) return 'SUAREZ';
-  if (n.indexOf('anlli') > -1 && n.indexOf('varon') > -1) return 'VARON';
-  return '';
+  var t = __tok();
+  if (!t) return '';
+  try {
+    var d = await __liveQuery('{me{email}}', t);
+    var email = String((d && d.me && d.me.email) || '').trim().toLowerCase();
+    return (email && Object.prototype.hasOwnProperty.call(__LEADERS, email)) ? __LEADERS[email] : '';
+  } catch (e) { return ''; }
 }
 
 function __openApiModal() {
@@ -159,9 +153,8 @@ function __openApiModal() {
     if (!t) { err.textContent = 'Escribe tu clave API.'; return; }
     bOk.disabled = true; bOk.textContent = 'Verificando\u2026'; err.textContent = '';
     try {
-      var d = await __liveQuery('{me{name}}', t);
+      await __liveQuery('{me{id}}', t);
       sessionStorage.setItem(__TK_KEY, t);
-      sessionStorage.setItem(__USER_KEY, d.me.name);
       location.reload();
     } catch (e) {
       bOk.disabled = false; bOk.textContent = 'Conectar';
@@ -183,8 +176,7 @@ document.addEventListener('DOMContentLoaded', function () {
   document.body.appendChild(p);
   if (__tok()) {
     __state = 'live';
-    __liveQuery('{me{name}}', __tok()).then(function (d) {
-      try { sessionStorage.setItem(__USER_KEY, d.me.name); } catch (x) {}
+    __liveQuery('{me{id}}', __tok()).then(function () {
       __setState('live');
     }).catch(function (e) {
       if (e.auth) { __clearTok(); __setState('badkey'); } else { __setState('offline'); }
