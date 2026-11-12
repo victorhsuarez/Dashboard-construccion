@@ -17,8 +17,7 @@ const SRC = path.join(__dirname, 'fuente');
 const OUT = path.join(__dirname, 'docs');
 const BOARDS = { A: '18432741374', M: '18433232131', AUS: '18432588237' };
 // Lideres autorizados (correo en minusculas -> clave). Solo ellos acceden a Aprobador, edicion de Modalidad y aprobacion.
-// Agregar aqui los correos de Perez ('PEREZ') y Varon ('VARON') cuando se tengan.
-const LEADERS = { 'victor.h.suarez@ibm.com': 'SUAREZ' };
+const LEADERS = { 'victor.h.suarez@ibm.com': 'SUAREZ', 'jesus.perez1@ibm.com': 'PEREZ', 'angie.varon@ibm.com': 'VARON' };
 // Datos de Horas Extras: no se incrustan en la foto publica (solo se ven en vivo, tras validar al lider).
 const HE_COLS = ['numeric_mm7mrmr6', 'text_mm7my82t', 'text_mm82xpzv', 'color_mm7mtfss', 'color_mm7mtv3w', 'timerange_mm7m57ra'];
 
