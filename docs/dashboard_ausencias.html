@@ -128,6 +128,15 @@ async function __liveQuery(query, token) {
   return j.data;
 }
 
+/* Monday responde 401 (clave invalida) SIN cabeceras CORS: el navegador lo ve como TypeError ("Failed to fetch"), igual que una caida de red.
+   Se distingue sondeando: una peticion no-cors resuelve si api.monday.com es alcanzable (entonces el fallo fue la clave). */
+async function __mondayReachable() {
+  try { await fetch('https://api.monday.com/v2', { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: 'x' }); return true; }
+  catch (e) { return false; }
+}
+var __MSG_REJECTED = 'Monday rechaz\u00f3 la clave: no es v\u00e1lida, venci\u00f3 o se copi\u00f3 incompleta. Genera una nueva (avatar \u2192 Developers \u2192 My access tokens) y p\u00e9gala completa, sin espacios.';
+var __MSG_NONET = 'No se pudo conectar con api.monday.com. Revisa tu red, VPN o proxy.';
+
 function __permMsg(e) {
   return 'Tu usuario de Monday no tiene permiso para guardar este cambio (' + e.message + '). Pide acceso de edicion al tablero. No se guardo el cambio.';
 }
@@ -194,7 +203,10 @@ async function mq(query) {
     catch (e) {
       if (e.auth) { __clearTok(); __setState('badkey'); throw new Error('Clave API no valida. Vuelve a conectarla. No se guardo el cambio.'); }
       if (e.perm) { throw new Error(__permMsg(e)); }
-      if (e instanceof TypeError) { __setState('offline'); throw new Error('Sin conexion con Monday. No se guardo el cambio.'); }
+      if (e instanceof TypeError) {
+        if (await __mondayReachable()) { __setState('badkey'); throw new Error('Monday rechaz\u00f3 tu clave API. Reconecta (bot\u00f3n \uD83D\uDD11) con una clave nueva. No se guard\u00f3 el cambio.'); }
+        __setState('offline'); throw new Error('Sin conexion con Monday. No se guardo el cambio.');
+      }
       throw e;
     }
   }
@@ -370,13 +382,15 @@ function __openApiModal() {
       }
       return;
     }
+    if (!/^[\x21-\x7E]+$/.test(t)) { bOk.disabled = false; bOk.textContent = 'Conectar'; err.textContent = 'La clave tiene espacios, saltos de l\u00ednea o caracteres no v\u00e1lidos. C\u00f3piala de nuevo, completa y sin espacios.'; return; }
     try {
       await __liveQuery('{me{id}}', t);
       localStorage.setItem(__TK_KEY, t);
       location.reload();
     } catch (e) {
       bOk.disabled = false; bOk.textContent = 'Conectar';
-      err.textContent = e.auth ? 'Clave API no valida o sin permisos.' : (e instanceof TypeError ? 'No se pudo verificar: revisa que la clave API sea correcta y tu conexion.' : e.message);
+      if (e instanceof TypeError) { err.textContent = (await __mondayReachable()) ? __MSG_REJECTED : __MSG_NONET; return; }
+      err.textContent = e.auth ? 'Clave API no valida o sin permisos.' : e.message;
     }
   }
   bOk.onclick = connect;
@@ -399,7 +413,9 @@ document.addEventListener('DOMContentLoaded', function () {
     __liveQuery('{me{id}}', __tok()).then(function () {
       __setState('live');
     }).catch(function (e) {
-      if (e.auth) { __clearTok(); __setState('badkey'); } else { __setState('offline'); }
+      if (e.auth) { __clearTok(); __setState('badkey'); }
+      else if (e instanceof TypeError) { __mondayReachable().then(function (up) { __setState(up ? 'badkey' : 'offline'); }); } // clave rechazada (401 sin CORS) o sin red; no se borra por si fue un fallo pasajero
+      else { __setState('offline'); }
     });
   } else if (__bridgeOn()) {
     __state = 'live';
