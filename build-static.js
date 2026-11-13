@@ -277,7 +277,7 @@ async function confirmAprPwd(){}
 
   const act = buildActualizaciones(read('dashboard_actualizaciones.html'), { [BOARDS.A]: snap[BOARDS.A], [BOARDS.M]: snap[BOARDS.M] }, stamp);
   const aus = buildAusencias(read('dashboard_ausencias.html'), { [BOARDS.AUS]: snap[BOARDS.AUS] }, stamp);
-  const portal = injectShim(hideMondayLinks(read('index_v2.html'), '<a href="https://monday.com/', 2, 'portal'), portalLeaderScript());
+  const portal = injectShim(hideMondayLinks(read('index_v2.html'), '<a href="https://ibm.monday.com/', 2, 'portal'), portalLeaderScript());
 
   // Contrasenas del codigo fuente (se leen en ejecucion, no se guardan en este script)
   const secrets = [];
