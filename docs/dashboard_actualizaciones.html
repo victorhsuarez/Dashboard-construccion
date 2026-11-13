@@ -1849,15 +1849,18 @@ async function loadModalidad(){
   }catch(err){phide();showToast('❌ Error Modalidad: '+err.message,'err');}
 }
 
+/* Normaliza para buscar: minúsculas, sin tildes, espacios simples */
+function _normBusq(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();}
 function filterMod(){
-  modFilter=document.getElementById('mod-search').value.toLowerCase();
+  modFilter=_normBusq(document.getElementById('mod-search').value);
   modStatusF=document.getElementById('mod-filter').value;
   renderMod();
 }
 
 function renderMod(){
   const items=modItems.filter(it=>{
-    const mTxt=!modFilter||it.name.toLowerCase().includes(modFilter)||it.region.toLowerCase().includes(modFilter);
+    const hay=_normBusq(it.name+' '+it.region);
+    const mTxt=!modFilter||modFilter.split(' ').every(t=>hay.includes(t));
     const mSt=!modStatusF||it.modalidad===modStatusF;
     return mTxt&&mSt;
   });
