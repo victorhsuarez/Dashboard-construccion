@@ -39,7 +39,7 @@ var __BRIDGE = ""; // URL del puente (Cloudflare Worker) o ''. Con codigo de equ
 var __CODE_KEY = 'adcar_team_code';
 var __grants = {}, __bridgeAt = 0, __bridgeBusy = null, __bridgeDirty = false;
 var __LEADERS = {"victor.h.suarez@ibm.com":{"k":"SUAREZ","s":"uW/G0fjdbnPp+abGYWggEQ==","h":"alRvQboeVg7370Hj3tBgF4KPwuypUvso3JLKPgdk7ns=","i":600000},"jesus.perez1@ibm.com":{"k":"PEREZ","s":"80OoA6XZy3+6dEmBT+dGyQ==","h":"tgpKdbHuLT/wH+TSq+FlQuLoFbngA/5o+kofSbUTQAg=","i":600000},"angie.varon@ibm.com":{"k":"VARON","s":"5YZ66hvOVgb6al0r0qWH8A==","h":"EgD4ub9Na7J/QbuoF/NEqIHndZFgZu8ymu7ghNumHU8=","i":600000}}; // correo (minusculas) -> {k: PEREZ|SUAREZ|VARON, s: sal, h: huella PBKDF2 del PIN, i: iteraciones}
-var __NOKEY = 'Conecta tu clave API (boton \uD83D\uDD11 abajo a la izquierda) para guardar cambios en Monday.';
+var __NOKEY = 'Falta tu clave API de Monday. Conectala en la ventana que se abrio (o con el boton \uD83D\uDD11 abajo a la izquierda) y vuelve a pulsar el boton. No se guardo el cambio.';
 var __TK_KEY = 'monday_api_key';
 var __USER_KEY = 'monday_user';
 var __PIN_KEY = 'monday_pin_ok';
@@ -198,7 +198,7 @@ async function mq(query) {
   var t = __tok();
   if (!t && __bridgeOn()) return __bridgeMq(query);
   if (/^\s*mutation/i.test(query)) {
-    if (!t) throw new Error(__nokey());
+    if (!t) { __askKey(); throw new Error(__nokey()); }
     try { var d = await __liveQuery(query, t); __setState('live'); return d; }
     catch (e) {
       if (e.auth) { __clearTok(); __setState('badkey'); throw new Error('Clave API no valida. Vuelve a conectarla. No se guardo el cambio.'); }
@@ -229,7 +229,7 @@ async function mq(query) {
 async function mup(itemId, columnId, file) {
   var t = __tok();
   if (!t && __bridgeOn()) return __bridgeUpload(itemId, columnId, file);
-  if (!t) throw new Error(__nokey());
+  if (!t) { __askKey(); throw new Error(__nokey()); }
   if (!/^\d+$/.test(String(itemId)) || !/^[A-Za-z0-9_]+$/.test(String(columnId))) throw new Error('Datos de archivo invalidos');
   var fd = new FormData();
   fd.append('query', 'mutation ($file: File!) { add_file_to_column(item_id: ' + itemId + ', column_id: "' + columnId + '", file: $file) { id } }');
@@ -316,7 +316,9 @@ async function __leaderAuth() {
   return r.rec.k;
 }
 
-function __openApiModal() {
+/* Falta la clave: abre la ventana de conexion sin recargar la pagina (para no perder lo que la persona ya lleno) */
+function __askKey() { if (!__BRIDGE && !document.getElementById('__apiModal')) { try { __openApiModal(true); } catch (e) {} } }
+function __openApiModal(keepPage) {
   var old = document.getElementById('__apiModal'); if (old) old.remove();
   var connected = !!__tok() || !!__code();
   var ov = document.createElement('div');
@@ -392,6 +394,12 @@ function __openApiModal() {
         try { sessionStorage.setItem(__TK_KEY, t); } catch (e3) {}
         alert('Tu navegador no permite guardar la clave de forma permanente (modo InPrivate o borrado de datos del sitio). Funcionar\u00e1 solo hasta que cierres esta pesta\u00f1a; tendr\u00e1s que conectarla de nuevo.');
       }
+      if (keepPage === true) {
+        ov.remove(); __setState('live');
+        __leaderKey().then(function (k) { if (k) document.documentElement.classList.add('is-leader'); });
+        try { showToast('\u2705 Clave conectada. Vuelve a pulsar el bot\u00f3n para enviar.', 'ok'); } catch (e4) {}
+        return;
+      }
       location.reload();
     } catch (e) {
       bOk.disabled = false; bOk.textContent = 'Conectar';
@@ -411,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var p = document.createElement('button');
   p.id = '__apiPill'; p.type = 'button';
   p.style.cssText = 'position:fixed;left:12px;bottom:12px;z-index:99999;background:#0f172a;color:#fff;padding:7px 14px;border:0;border-radius:999px;font:600 11px system-ui,sans-serif;cursor:pointer;opacity:.95';
-  p.onclick = __openApiModal;
+  p.onclick = function () { __openApiModal(); };
   document.body.appendChild(p);
   if (__tok()) {
     __leaderKey().then(function (k) { if (k) document.documentElement.classList.add('is-leader'); });
