@@ -177,14 +177,13 @@ var __state = 'snap'; // snap | live | offline | badkey
 /* La clave API se guarda en localStorage: cada persona la conecta una sola vez por navegador y no se vuelve a pedir
    hasta que pulse "Desconectar" o Monday la rechace (HTTP 401). Si habia una clave en sessionStorage (version anterior) se migra. */
 function __tok() {
-  try {
-    var t = localStorage.getItem(__TK_KEY) || '';
-    if (!t) {
-      t = sessionStorage.getItem(__TK_KEY) || '';
-      if (t) { localStorage.setItem(__TK_KEY, t); sessionStorage.removeItem(__TK_KEY); }
-    }
-    return t;
-  } catch (e) { return ''; }
+  var t = '';
+  try { t = localStorage.getItem(__TK_KEY) || ''; } catch (e) {}
+  if (!t) {
+    try { t = sessionStorage.getItem(__TK_KEY) || ''; } catch (e) {}
+    if (t) { try { localStorage.setItem(__TK_KEY, t); sessionStorage.removeItem(__TK_KEY); } catch (e) {} }
+  }
+  return t;
 }
 function __clearTok() {
   try { localStorage.removeItem(__TK_KEY); } catch (e) {}
@@ -230,9 +229,10 @@ function __snapAnswer(query) {
 
 /* e.auth = la clave no es valida (se borra); e.perm = la clave es valida pero el usuario no tiene permiso (NO se borra). */
 function __gqlError(j) {
-  var msg = j.errors.map(function (x) { return x.message; }).join('; ');
+  /* Con API-Version 2024-01 Monday devuelve los errores como texto plano (["Not Authenticated"]), no como objetos */
+  var msg = j.errors.map(function (x) { return typeof x === 'string' ? x : (x && x.message) || ''; }).join('; ');
   var e = new Error(msg);
-  var codes = j.errors.map(function (x) { return (x.extensions && x.extensions.code) || ''; }).join(' ');
+  var codes = j.errors.map(function (x) { return (x && x.extensions && x.extensions.code) || ''; }).join(' ');
   if (/not authenticated|invalid.*token/i.test(msg)) e.auth = true;
   else if (/unauthori[sz]ed|permission|not allowed|forbidden/i.test(msg + ' ' + codes)) e.perm = true;
   return e;
@@ -514,7 +514,13 @@ function __openApiModal() {
     if (!/^[\x21-\x7E]+$/.test(t)) { bOk.disabled = false; bOk.textContent = 'Conectar'; err.textContent = 'La clave tiene espacios, saltos de l\u00ednea o caracteres no v\u00e1lidos. C\u00f3piala de nuevo, completa y sin espacios.'; return; }
     try {
       await __liveQuery('{me{id}}', t);
-      localStorage.setItem(__TK_KEY, t);
+      /* Si el navegador no deja guardar datos del sitio (InPrivate, "borrar al cerrar", bloqueo), se guarda al menos para esta sesion */
+      var saved = false;
+      try { localStorage.setItem(__TK_KEY, t); saved = localStorage.getItem(__TK_KEY) === t; } catch (e2) {}
+      if (!saved) {
+        try { sessionStorage.setItem(__TK_KEY, t); } catch (e3) {}
+        alert('Tu navegador no permite guardar la clave de forma permanente (modo InPrivate o borrado de datos del sitio). Funcionar\u00e1 solo hasta que cierres esta pesta\u00f1a; tendr\u00e1s que conectarla de nuevo.');
+      }
       location.reload();
     } catch (e) {
       bOk.disabled = false; bOk.textContent = 'Conectar';
