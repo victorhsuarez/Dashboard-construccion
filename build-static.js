@@ -15,6 +15,13 @@ if (!REUSE && !process.env.MONDAY_API_TOKEN) {
 const TOKEN = process.env.MONDAY_API_TOKEN;
 if (!REUSE && !TOKEN) { console.error('Falta MONDAY_API_TOKEN (o ENV_PASSPHRASE para .env.enc).'); process.exit(1); }
 
+// URL del puente (Cloudflare Worker) para ADCAR sin cuenta en Monday. Se lee de puente.json {"url":"https://..."}; si no existe, el puente queda desactivado.
+let BRIDGE_URL = '';
+try {
+  BRIDGE_URL = String(JSON.parse(fs.readFileSync(path.join(__dirname, 'puente.json'), 'utf8')).url || '').trim().replace(/\/+$/, '');
+} catch (e) { BRIDGE_URL = ''; }
+if (BRIDGE_URL && !/^https:\/\/[A-Za-z0-9.-]+(:\d+)?(\/[A-Za-z0-9._~-]*)*$/.test(BRIDGE_URL)) { console.error('puente.json: la URL debe ser https:// sin parametros.'); process.exit(1); }
+
 const SRC = path.join(__dirname, 'fuente');
 const OUT = path.join(__dirname, 'docs');
 const BOARDS = { A: '18432741374', M: '18433232131', AUS: '18432588237' };
@@ -77,9 +84,28 @@ function shim(snap, stamp, toastErr) {
     .replace('__SNAP_JSON__', () => data)
     .replace('__STAMP_JSON__', () => JSON.stringify(stamp))
     .replace('__LEADERS_JSON__', () => JSON.stringify(LEADERS))
+    .replace('__BRIDGE_JSON__', () => JSON.stringify(BRIDGE_URL))
     .replace('__TOAST_ERR__', () => toastErr);
-  if (/__(SNAP_JSON|STAMP_JSON|TOAST_ERR|LEADERS_JSON)__/.test(code)) throw new Error('Quedaron marcadores sin sustituir en shim-template.js');
+  if (/__(SNAP_JSON|STAMP_JSON|TOAST_ERR|LEADERS_JSON|BRIDGE_JSON)__/.test(code)) throw new Error('Quedaron marcadores sin sustituir en shim-template.js');
   return '<script>\n' + code + '\n</script>\n';
+}
+
+// Enlaces a Monday: se marcan data-leader-only (ocultos salvo para lideres). Se exige el numero exacto de enlaces para detectar cambios en fuente/.
+function hideMondayLinks(html, prefix, expected, label) {
+  const n = html.split(prefix).length - 1;
+  if (n !== expected) throw new Error('Enlaces a Monday en ' + label + ': se esperaban ' + expected + ' y hay ' + n);
+  return html.split(prefix).join(prefix.replace('<a ', '<a data-leader-only '));
+}
+// El portal no lleva el shim completo: este mini-script muestra los enlaces solo si la clave API guardada pertenece a un lider.
+function portalLeaderScript() {
+  const emails = JSON.stringify(Object.keys(LEADER_EMAILS));
+  return '<script>(function(){var L=' + emails + ';' +
+    "var s=document.createElement('style');s.textContent='html:not(.is-leader) [data-leader-only]{display:none!important}';(document.head||document.documentElement).appendChild(s);" +
+    "var t='';try{t=localStorage.getItem('monday_api_key')||sessionStorage.getItem('monday_api_key')||'';}catch(e){}" +
+    'if(!t)return;' +
+    "fetch('https://api.monday.com/v2',{method:'POST',headers:{'Content-Type':'application/json','Authorization':t,'API-Version':'2024-01'},body:JSON.stringify({query:'{me{email}}'})})" +
+    ".then(function(r){return r.json();}).then(function(j){var e=String((j.data&&j.data.me&&j.data.me.email)||'').trim().toLowerCase();if(L.indexOf(e)>-1)document.documentElement.classList.add('is-leader');}).catch(function(){});" +
+    '})();</script>\n';
 }
 
 function injectShim(html, shimHtml) {
@@ -89,6 +115,7 @@ function injectShim(html, shimHtml) {
 }
 
 function buildActualizaciones(html, snap, stamp) {
+  html = hideMondayLinks(html, '<a href="https://ibm.monday.com/', 2, 'actualizaciones');
   html = rep(html, "const PROXY = 'http://localhost:3000';", "const PROXY = '#static';", 'PROXY');
   html = repRe(html, /const LIDER_PWDS=\{[^}]*\};/, 'const LIDER_PWDS={};', 'LIDER_PWDS');
   html = rep(html, 'async function mq(', 'async function __mq_live(', 'mq');
@@ -120,11 +147,13 @@ async function __needLeader(){
 async function renderMisHE(silent){
   var c=document.getElementById("ot-mis-queue"); if(!c) return;
   function msg(t,col){c.innerHTML='<div style="text-align:center;padding:28px;color:'+(col||'var(--muted)')+';font-size:12px;">'+t+'</div>';}
-  if(!__tok()){msg("Conecta tu clave API (bot\\u00f3n \\ud83d\\udd11 de abajo a la izquierda) para ver tus HE.");return;}
+  if(!__tok()&&!__bridgeOn()){msg("Conecta tu clave API o el c\\u00f3digo de equipo (bot\\u00f3n \\ud83d\\udd11 de abajo a la izquierda) para ver tus HE.");return;}
   var norm=function(s){return (s||"").toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/\\s+/g," ").trim();};
   if(silent!==true) msg("\\u23f3 Cargando\\u2026");
   try{
-    var who=(await __liveQuery("{me{id name email}}",__tok())).me||{};
+    /* Sin clave personal (ADCAR con codigo de equipo): se usa el nombre escrito en el campo ADCAR de la solicitud */
+    var who=__tok()?((await __liveQuery("{me{id name email}}",__tok())).me||{}):{name:(document.getElementById("ot-adcar")||{}).value||""};
+    if(!__tok()&&norm(who.name).split(/[^a-z]+/).filter(function(w){return w.length>1;}).length<2){msg("Escribe tu nombre completo en el campo ADCAR de la solicitud para ver tus HE.");return;}
     var email=norm(who.email), src=norm(who.name);
     if(!src||src.indexOf("@")>-1) src=email.split("@")[0];
     var toks=src.split(/[^a-z]+/).filter(function(w){return w.length>1;});
@@ -195,6 +224,7 @@ async function promptModAuth(id){if(await __needLeader()){setModLiderAuth(true);
 }
 
 function buildAusencias(html, snap, stamp) {
+  html = hideMondayLinks(html, '<a href="https://ibm.monday.com/', 2, 'ausencias');
   html = repRe(html, /const APR_PASSWORD\s*=\s*'[^']*';/, "const APR_PASSWORD = '';", 'APR_PASSWORD');
   html = rep(html, 'async function mq(', 'async function __mq_live(', 'mq');
   html = rep(html, "'http://localhost:3000/api/monday/query'", "'#static'", 'url query');
@@ -247,7 +277,7 @@ async function confirmAprPwd(){}
 
   const act = buildActualizaciones(read('dashboard_actualizaciones.html'), { [BOARDS.A]: snap[BOARDS.A], [BOARDS.M]: snap[BOARDS.M] }, stamp);
   const aus = buildAusencias(read('dashboard_ausencias.html'), { [BOARDS.AUS]: snap[BOARDS.AUS] }, stamp);
-  const portal = read('index_v2.html');
+  const portal = injectShim(hideMondayLinks(read('index_v2.html'), '<a href="https://monday.com/', 2, 'portal'), portalLeaderScript());
 
   // Contrasenas del codigo fuente (se leen en ejecucion, no se guardan en este script)
   const secrets = [];

@@ -603,6 +603,8 @@
   </style>
 </head>
 <body>
+<script>(function(){var L=["victor.h.suarez@ibm.com","jesus.perez1@ibm.com","angie.varon@ibm.com"];var s=document.createElement('style');s.textContent='html:not(.is-leader) [data-leader-only]{display:none!important}';(document.head||document.documentElement).appendChild(s);var t='';try{t=localStorage.getItem('monday_api_key')||sessionStorage.getItem('monday_api_key')||'';}catch(e){}if(!t)return;fetch('https://api.monday.com/v2',{method:'POST',headers:{'Content-Type':'application/json','Authorization':t,'API-Version':'2024-01'},body:JSON.stringify({query:'{me{email}}'})}).then(function(r){return r.json();}).then(function(j){var e=String((j.data&&j.data.me&&j.data.me.email)||'').trim().toLowerCase();if(L.indexOf(e)>-1)document.documentElement.classList.add('is-leader');}).catch(function(){});})();</script>
+
 
   <!-- Floating particles -->
   <div class="particle p1"></div>
@@ -682,7 +684,7 @@
         <div class="header-divider"></div>
         <span class="header-title">Portal de Gestión de Equipo</span>
       </div>
-      <a href="https://monday.com/boards/18432741374" target="_blank" rel="noopener" class="btn-monday">
+      <a data-leader-only href="https://monday.com/boards/18432741374" target="_blank" rel="noopener" class="btn-monday">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         Abrir en Monday
       </a>
@@ -846,7 +848,7 @@
         <p class="section-label">Accesos rápidos</p>
         <div class="quick-links-grid">
 
-          <a href="https://monday.com/boards/18432741374" target="_blank" rel="noopener" class="qlink">
+          <a data-leader-only href="https://monday.com/boards/18432741374" target="_blank" rel="noopener" class="qlink">
             <span class="qlink-dot"></span>
             Monday · Board 18432741374
           </a>

@@ -2,8 +2,13 @@
    build-static.js sustituye los cuatro marcadores en mayuscula (SNAP, STAMP, TOAST y LEADERS) rodeados de guiones bajos.
    Sin clave API: responde con la foto incrustada (solo lectura).
    Con clave API: consulta y escribe directo en api.monday.com desde el navegador, con los permisos de esa clave. */
+/* Enlaces a Monday (data-leader-only): ocultos para todos; solo se muestran a los lideres (correo del dueno de la clave API). Es una ayuda visual, no una barrera de seguridad. */
+(function () { var s = document.createElement('style'); s.textContent = 'html:not(.is-leader) [data-leader-only]{display:none!important}'; (document.head || document.documentElement).appendChild(s); })();
 var __SNAP = __SNAP_JSON__;
 var __STAMP = __STAMP_JSON__;
+var __BRIDGE = __BRIDGE_JSON__; // URL del puente (Cloudflare Worker) o ''. Con codigo de equipo, los ADCAR escriben/leen por el puente sin ser miembros de Monday.
+var __CODE_KEY = 'adcar_team_code';
+var __grants = {}, __bridgeAt = 0, __bridgeBusy = null, __bridgeDirty = false;
 var __LEADERS = __LEADERS_JSON__; // correo (minusculas) -> {k: PEREZ|SUAREZ|VARON, s: sal, h: huella PBKDF2 del PIN, i: iteraciones}
 var __NOKEY = 'Conecta tu clave API (boton \uD83D\uDD11 abajo a la izquierda) para guardar cambios en Monday.';
 var __TK_KEY = 'monday_api_key';
@@ -11,15 +16,35 @@ var __USER_KEY = 'monday_user';
 var __PIN_KEY = 'monday_pin_ok';
 var __state = 'snap'; // snap | live | offline | badkey
 
-function __tok() { try { return sessionStorage.getItem(__TK_KEY) || ''; } catch (e) { return ''; } }
-function __clearTok() { try { sessionStorage.removeItem(__TK_KEY); sessionStorage.removeItem(__USER_KEY); sessionStorage.removeItem(__PIN_KEY); } catch (e) {} }
+/* La clave API se guarda en localStorage: cada persona la conecta una sola vez por navegador y no se vuelve a pedir
+   hasta que pulse "Desconectar" o Monday la rechace (HTTP 401). Si habia una clave en sessionStorage (version anterior) se migra. */
+function __tok() {
+  try {
+    var t = localStorage.getItem(__TK_KEY) || '';
+    if (!t) {
+      t = sessionStorage.getItem(__TK_KEY) || '';
+      if (t) { localStorage.setItem(__TK_KEY, t); sessionStorage.removeItem(__TK_KEY); }
+    }
+    return t;
+  } catch (e) { return ''; }
+}
+function __clearTok() {
+  try { localStorage.removeItem(__TK_KEY); } catch (e) {}
+  try { sessionStorage.removeItem(__TK_KEY); sessionStorage.removeItem(__USER_KEY); sessionStorage.removeItem(__PIN_KEY); } catch (e) {}
+}
 function __roToast(m) { try { showToast(m__TOAST_ERR__); } catch (e) { alert(m); } }
+
+function __code() { try { return localStorage.getItem(__CODE_KEY) || ''; } catch (e) { return ''; } }
+function __clearCode() { try { localStorage.removeItem(__CODE_KEY); } catch (e) {} }
+/* Modo puente: hay puente configurado, codigo de equipo guardado y NO hay clave personal (los lideres usan su clave directo) */
+function __bridgeOn() { return !!(__BRIDGE && __code() && !__tok()); }
+function __nokey() { return __BRIDGE ? 'Ingresa el c\u00f3digo de equipo (bot\u00f3n \uD83D\uDD11 abajo a la izquierda) para guardar en Monday.' : __NOKEY; }
 
 function __statusText() {
   if (__state === 'live') return '\uD83D\uDFE2 En vivo con Monday';
-  if (__state === 'offline') return '\uD83D\uDD34 Sin conexion o clave invalida \u00b7 foto al ' + __STAMP;
-  if (__state === 'badkey') return '\uD83D\uDD11 Clave API no valida \u00b7 foto al ' + __STAMP;
-  return '\uD83D\uDD11 Clave API \u00b7 foto al ' + __STAMP;
+  if (__state === 'offline') return '\uD83D\uDD34 Sin conexion o clave invalida';
+  if (__state === 'badkey') return __BRIDGE ? '\uD83D\uDD11 C\u00f3digo o clave no v\u00e1lidos' : '\uD83D\uDD11 Clave API no valida';
+  return __BRIDGE ? '\uD83D\uDD11 C\u00f3digo de equipo' : '\uD83D\uDD11 Clave API';
 }
 function __setState(s) {
   __state = s;
@@ -45,11 +70,19 @@ function __snapAnswer(query) {
   return { boards: [{ items_page: { cursor: null, items: items } }] };
 }
 
+/* e.auth = la clave no es valida (se borra); e.perm = la clave es valida pero el usuario no tiene permiso (NO se borra). */
 function __gqlError(j) {
   var msg = j.errors.map(function (x) { return x.message; }).join('; ');
   var e = new Error(msg);
-  if (/not authenticated|unauthori[sz]ed|invalid.*token/i.test(msg)) e.auth = true;
+  var codes = j.errors.map(function (x) { return (x.extensions && x.extensions.code) || ''; }).join(' ');
+  if (/not authenticated|invalid.*token/i.test(msg)) e.auth = true;
+  else if (/unauthori[sz]ed|permission|not allowed|forbidden/i.test(msg + ' ' + codes)) e.perm = true;
   return e;
+}
+function __httpError(r) {
+  if (r.status === 401) { var a = new Error('Clave API no valida'); a.auth = true; return a; }
+  if (r.status === 403) { var p = new Error('Monday rechazo la operacion (HTTP 403)'); p.perm = true; return p; }
+  return null;
 }
 
 async function __liveQuery(query, token) {
@@ -60,30 +93,93 @@ async function __liveQuery(query, token) {
   });
   var j = {};
   try { j = await r.json(); } catch (e) {}
-  if (r.status === 401 || r.status === 403) { var a = new Error('Clave API no valida o sin permisos'); a.auth = true; throw a; }
+  var he = __httpError(r); if (he) throw he;
   if (j.errors && j.errors.length) throw __gqlError(j);
   if (!r.ok) throw new Error('Monday HTTP ' + r.status);
   return j.data;
 }
 
+function __permMsg(e) {
+  return 'Tu usuario de Monday no tiene permiso para guardar este cambio (' + e.message + '). Pide acceso de edicion al tablero. No se guardo el cambio.';
+}
+
+/* ---- Puente: el ADCAR solo puede CREAR (actualizacion, HE, ausencia) y adjuntar a lo que acaba de crear; leer viene del puente ---- */
+async function __bridgeFetch(path, opts) {
+  opts = opts || {};
+  opts.headers = Object.assign({ 'X-Team-Code': __code() }, opts.headers || {});
+  var r = await fetch(__BRIDGE + path, opts);
+  var j = {};
+  try { j = await r.json(); } catch (e) {}
+  if (r.status === 401) { __clearCode(); __setState('badkey'); var a = new Error('C\u00f3digo de equipo no v\u00e1lido. Vuelve a ingresarlo.'); a.auth = true; throw a; }
+  if (!r.ok) throw new Error(j.error || ('Puente HTTP ' + r.status));
+  return j;
+}
+function __bridgeRefresh(force) {
+  if (!force && __bridgeAt && Date.now() - __bridgeAt < 20000) return Promise.resolve();
+  if (__bridgeBusy) return __bridgeBusy;
+  __bridgeBusy = __bridgeFetch('/snapshot' + (__bridgeDirty ? '?fresh=1' : '')).then(function (j) {
+    __SNAP = j.boards; __STAMP = j.stamp; __bridgeAt = Date.now(); __bridgeDirty = false; __bridgeBusy = null; __setState('live');
+  }, function (e) {
+    __bridgeBusy = null; __bridgeAt = Date.now() - 10000; // reintenta en ~10 s
+    if (e instanceof TypeError) __setState('offline');
+    throw e;
+  });
+  return __bridgeBusy;
+}
+async function __bridgeMq(query) {
+  if (/^\s*mutation/i.test(query)) {
+    var m = query.match(/create_item\s*\(\s*board_id\s*:\s*"?(\d+)"?\s*,\s*item_name\s*:\s*("(?:[^"\\]|\\.)*")\s*,\s*column_values\s*:\s*("(?:[^"\\]|\\.)*")/);
+    if (!m) throw new Error('Solo los l\u00edderes (con su clave API de Monday) pueden editar, aprobar o eliminar. No se guard\u00f3 el cambio.');
+    var name, cv;
+    try { name = JSON.parse(m[2]); cv = JSON.parse(JSON.parse(m[3])); } catch (e) { throw new Error('No se pudo leer la solicitud. No se guard\u00f3 el cambio.'); }
+    var j;
+    try { j = await __bridgeFetch('/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ board: m[1], name: name, column_values: cv }) }); }
+    catch (e) { if (e instanceof TypeError) { __setState('offline'); throw new Error('Sin conexion con el puente. No se guard\u00f3 el cambio.'); } throw e; }
+    __grants[j.create_item.id] = { board: j.board, grant: j.grant };
+    __bridgeDirty = true; __bridgeAt = 0;
+    __setState('live');
+    return { create_item: { id: j.create_item.id } };
+  }
+  try { await __bridgeRefresh(); } catch (e) {} // si falla se responde con la ultima foto
+  return __snapAnswer(query);
+}
+async function __bridgeUpload(itemId, columnId, file) {
+  var g = __grants[itemId];
+  if (!g) throw new Error('Solo se pueden adjuntar archivos a una solicitud creada en esta sesi\u00f3n.');
+  var fd = new FormData();
+  fd.append('board', g.board); fd.append('itemId', String(itemId)); fd.append('columnId', columnId); fd.append('grant', g.grant);
+  fd.append('file', file, file.name);
+  try { await __bridgeFetch('/upload', { method: 'POST', body: fd }); }
+  catch (e) { if (e instanceof TypeError) { __setState('offline'); throw new Error('Sin conexion con el puente al subir ' + file.name); } throw e; }
+  __bridgeDirty = true; __bridgeAt = 0;
+  return { success: true };
+}
+
 async function mq(query) {
   query = String(query);
   var t = __tok();
+  if (!t && __bridgeOn()) return __bridgeMq(query);
   if (/^\s*mutation/i.test(query)) {
-    if (!t) throw new Error(__NOKEY);
+    if (!t) throw new Error(__nokey());
     try { var d = await __liveQuery(query, t); __setState('live'); return d; }
     catch (e) {
-      if (e.auth) { __clearTok(); __setState('badkey'); throw new Error('Clave API no valida o sin permisos. No se guardo el cambio.'); }
+      if (e.auth) { __clearTok(); __setState('badkey'); throw new Error('Clave API no valida. Vuelve a conectarla. No se guardo el cambio.'); }
+      if (e.perm) { throw new Error(__permMsg(e)); }
       if (e instanceof TypeError) { __setState('offline'); throw new Error('Sin conexion con Monday. No se guardo el cambio.'); }
       throw e;
     }
   }
   if (t) {
-    try { var r = await __liveQuery(query, t); __setState('live'); return r; }
+    try {
+      var r = await __liveQuery(query, t); __setState('live');
+      /* Clave valida pero sin acceso al tablero: Monday responde boards:[]; se usa la foto para no romper la pagina. */
+      if (r && Array.isArray(r.boards) && !r.boards.length) { try { return __snapAnswer(query); } catch (x) {} }
+      return r;
+    }
     catch (e) {
       if (e.auth) { __clearTok(); __setState('badkey'); }
       else if (e instanceof TypeError) { __setState('offline'); }
-      else { throw e; }
+      else if (!e.perm) { throw e; }
     }
   }
   return __snapAnswer(query);
@@ -91,15 +187,24 @@ async function mq(query) {
 
 async function mup(itemId, columnId, file) {
   var t = __tok();
-  if (!t) throw new Error(__NOKEY);
+  if (!t && __bridgeOn()) return __bridgeUpload(itemId, columnId, file);
+  if (!t) throw new Error(__nokey());
   if (!/^\d+$/.test(String(itemId)) || !/^[A-Za-z0-9_]+$/.test(String(columnId))) throw new Error('Datos de archivo invalidos');
   var fd = new FormData();
   fd.append('query', 'mutation ($file: File!) { add_file_to_column(item_id: ' + itemId + ', column_id: "' + columnId + '", file: $file) { id } }');
   fd.append('variables[file]', file, file.name);
-  var r = await fetch('https://api.monday.com/v2', { method: 'POST', headers: { 'Authorization': t, 'API-Version': '2024-01' }, body: fd });
+  /* La subida de archivos de Monday usa un endpoint propio: /v2/file (en /v2 no se aceptan archivos). */
+  var r;
+  try { r = await fetch('https://api.monday.com/v2/file', { method: 'POST', headers: { 'Authorization': t }, body: fd }); }
+  catch (e) { if (e instanceof TypeError) { __setState('offline'); throw new Error('Sin conexion con Monday al subir ' + file.name); } throw e; }
   var j = {};
   try { j = await r.json(); } catch (e) {}
-  if (j.errors && j.errors.length) throw __gqlError(j);
+  var err = __httpError(r) || ((j.errors && j.errors.length) ? __gqlError(j) : null);
+  if (err) {
+    if (err.auth) { __clearTok(); __setState('badkey'); throw new Error('Clave API no valida. No se subio ' + file.name); }
+    if (err.perm) { throw new Error('Sin permiso para subir archivos a este tablero (' + err.message + ')'); }
+    throw err;
+  }
   if (!r.ok) throw new Error('Monday HTTP ' + r.status);
   return { success: true };
 }
@@ -172,17 +277,30 @@ async function __leaderAuth() {
 
 function __openApiModal() {
   var old = document.getElementById('__apiModal'); if (old) old.remove();
-  var connected = !!__tok();
+  var connected = !!__tok() || !!__code();
   var ov = document.createElement('div');
   ov.id = '__apiModal';
   ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100000;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif';
   var box = document.createElement('div');
   box.style.cssText = 'background:#fff;color:#0f172a;border-radius:12px;padding:20px;width:min(420px,92vw);box-shadow:0 10px 40px rgba(0,0,0,.3)';
-  box.innerHTML = '<div style="font-size:15px;font-weight:700;margin-bottom:6px">Conectar con Monday</div>' +
-    '<div style="font-size:12px;color:#475569;line-height:1.5;margin-bottom:10px">Pega tu clave API personal de Monday ' +
-    '(avatar \u2192 Developers \u2192 My access tokens). Se guarda solo en esta pesta\u00f1a del navegador y ' +
-    'se env\u00eda \u00fanicamente a api.monday.com. Podr\u00e1s ver y guardar cambios seg\u00fan tus permisos en Monday; ' +
-    'la p\u00e1gina se actualiza sola cada 45 s.</div>';
+  box.innerHTML = '<div style="font-size:15px;font-weight:700;margin-bottom:6px">Conectar con Monday</div>';
+  var codeInp = null;
+  if (__BRIDGE) {
+    var d1 = document.createElement('div');
+    d1.style.cssText = 'font-size:12px;color:#475569;line-height:1.5;margin-bottom:6px';
+    d1.innerHTML = '<b>ADCAR:</b> escribe el c\u00f3digo de equipo que te dio tu l\u00edder. Con \u00e9l env\u00edas tus actualizaciones, horas extras y ausencias a Monday y ves sus datos, sin necesitar cuenta en Monday. Se guarda en este navegador y no se vuelve a pedir.';
+    codeInp = document.createElement('input');
+    codeInp.type = 'password'; codeInp.placeholder = 'C\u00f3digo de equipo'; codeInp.autocomplete = 'off';
+    codeInp.style.cssText = 'width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;margin-bottom:12px';
+    box.appendChild(d1); box.appendChild(codeInp);
+  }
+  var d2 = document.createElement('div');
+  d2.style.cssText = 'font-size:12px;color:#475569;line-height:1.5;margin-bottom:10px';
+  d2.innerHTML = (__BRIDGE ? '<b>L\u00edderes:</b> ' : '') + 'pega tu clave API personal de Monday ' +
+    '(avatar \u2192 Developers \u2192 My access tokens). Se guarda solo en este navegador (no se vuelve a pedir; ' +
+    'puedes quitarla con Desconectar) y se env\u00eda \u00fanicamente a api.monday.com. Podr\u00e1s ver y guardar cambios seg\u00fan tus permisos en Monday; ' +
+    'la p\u00e1gina se actualiza sola cada 45 s.';
+  box.appendChild(d2);
   var inp = document.createElement('input');
   inp.type = 'password'; inp.placeholder = 'Clave API de Monday'; inp.autocomplete = 'off';
   inp.style.cssText = 'width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px';
@@ -200,17 +318,32 @@ function __openApiModal() {
   bCancel.onclick = function () { ov.remove(); };
   if (connected) {
     var bOff = btn('Desconectar', '#fee2e2', '#991b1b');
-    bOff.onclick = function () { __clearTok(); location.reload(); };
+    bOff.onclick = function () { __clearTok(); __clearCode(); location.reload(); };
     row.appendChild(bOff);
   }
   row.appendChild(bCancel); row.appendChild(bOk);
   async function connect() {
     var t = inp.value.trim();
-    if (!t) { err.textContent = 'Escribe tu clave API.'; return; }
+    var cd = codeInp ? codeInp.value.trim() : '';
+    if (!t && !cd) { err.textContent = codeInp ? 'Escribe el c\u00f3digo de equipo o tu clave API.' : 'Escribe tu clave API.'; return; }
     bOk.disabled = true; bOk.textContent = 'Verificando\u2026'; err.textContent = '';
+    if (!t) {
+      try {
+        var cr = await fetch(__BRIDGE + '/check', { headers: { 'X-Team-Code': cd } });
+        if (cr.status === 401) { bOk.disabled = false; bOk.textContent = 'Conectar'; err.textContent = 'C\u00f3digo de equipo no v\u00e1lido.'; return; }
+        if (cr.status === 429) { bOk.disabled = false; bOk.textContent = 'Conectar'; err.textContent = 'Demasiados intentos. Espera unos minutos.'; return; }
+        if (!cr.ok) throw new Error('Puente HTTP ' + cr.status);
+        localStorage.setItem(__CODE_KEY, cd);
+        location.reload();
+      } catch (e) {
+        bOk.disabled = false; bOk.textContent = 'Conectar';
+        err.textContent = e instanceof TypeError ? 'No se pudo conectar con el puente. Revisa tu conexi\u00f3n.' : e.message;
+      }
+      return;
+    }
     try {
       await __liveQuery('{me{id}}', t);
-      sessionStorage.setItem(__TK_KEY, t);
+      localStorage.setItem(__TK_KEY, t);
       location.reload();
     } catch (e) {
       bOk.disabled = false; bOk.textContent = 'Conectar';
@@ -219,9 +352,10 @@ function __openApiModal() {
   }
   bOk.onclick = connect;
   inp.onkeydown = function (ev) { if (ev.key === 'Enter') connect(); };
+  if (codeInp) codeInp.onkeydown = function (ev) { if (ev.key === 'Enter') connect(); };
   ov.onclick = function (ev) { if (ev.target === ov) ov.remove(); };
   box.appendChild(inp); box.appendChild(err); box.appendChild(row);
-  ov.appendChild(box); document.body.appendChild(ov); inp.focus();
+  ov.appendChild(box); document.body.appendChild(ov); (codeInp || inp).focus();
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -231,12 +365,16 @@ document.addEventListener('DOMContentLoaded', function () {
   p.onclick = __openApiModal;
   document.body.appendChild(p);
   if (__tok()) {
+    __leaderKey().then(function (k) { if (k) document.documentElement.classList.add('is-leader'); });
     __state = 'live';
     __liveQuery('{me{id}}', __tok()).then(function () {
       __setState('live');
     }).catch(function (e) {
       if (e.auth) { __clearTok(); __setState('badkey'); } else { __setState('offline'); }
     });
+  } else if (__bridgeOn()) {
+    __state = 'live';
+    __bridgeRefresh(true).catch(function (e) { if (!e.auth) __setState('offline'); });
   }
   __setState(__state);
 });
