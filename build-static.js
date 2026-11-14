@@ -129,6 +129,36 @@ function injectShim(html, shimHtml) {
   return html.replace(m[0], () => m[0] + '\n' + shimHtml);
 }
 
+// Modo oscuro: interruptor en la esquina superior derecha del encabezado de cada pagina. Se aplica con un filtro (invertir + rotar tono) sobre <html>; la preferencia se guarda en localStorage ('ibm_theme').
+const DARK_HEAD = '<style>html.dm{filter:invert(.92) hue-rotate(180deg);}' +
+  '.dm-sw{display:inline-flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;padding:0 0 0 4px;font:inherit;color:#6b7fa3;flex-shrink:0;}' +
+  '.dm-sw svg{width:14px;height:14px;}' +
+  '.dm-track{position:relative;width:34px;height:18px;border-radius:9px;background:#c7d7fc;transition:background .2s;display:inline-block;}' +
+  '.dm-knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s;}' +
+  '.dm-sw[aria-checked="true"] .dm-track{background:#0f62fe;}' +
+  '.dm-sw[aria-checked="true"] .dm-knob{transform:translateX(16px);}' +
+  '.dm-sw:focus-visible{outline:2px solid #0f62fe;outline-offset:3px;border-radius:6px;}</style>\n' +
+  "<script>try{if(localStorage.getItem('ibm_theme')==='dark')document.documentElement.classList.add('dm');}catch(e){}</script>\n";
+const DARK_BODY = '<script>(function(){' +
+  "var K='ibm_theme',R=document.documentElement,h=document.querySelector('header');if(!h)return;" +
+  "var sw=document.createElement('button');sw.type='button';sw.id='dmSwitch';sw.className='dm-sw';sw.setAttribute('role','switch');sw.title='Modo oscuro';sw.setAttribute('aria-label','Modo oscuro');" +
+  'sw.innerHTML=\'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span class="dm-track"><span class="dm-knob"></span></span>\';' +
+  "function set(d){R.classList.toggle('dm',d);sw.setAttribute('aria-checked',d?'true':'false');}" +
+  "set(R.classList.contains('dm'));" +
+  "sw.onclick=function(){var d=!R.classList.contains('dm');set(d);try{localStorage.setItem(K,d?'dark':'light');}catch(e){}};" +
+  "var inner=h.querySelector(':scope > .max-w-7xl'),host;" +
+  'if(inner){host=inner.lastElementChild;}else{var last=h.lastElementChild;' +
+  "if(last&&last!==h.firstElementChild&&last.tagName==='DIV'){host=last;}else{host=document.createElement('div');host.style.cssText='display:flex;align-items:center;gap:12px';if(last&&last!==h.firstElementChild)host.appendChild(last);h.appendChild(host);}}" +
+  'host.appendChild(sw);' +
+  '})();</script>\n';
+function darkMode(html, label) {
+  if (html.split('</head>').length !== 2) throw new Error('Modo oscuro: no hay un unico </head> en ' + label);
+  const i = html.lastIndexOf('</body>');
+  if (i < 0) throw new Error('Modo oscuro: no hay </body> en ' + label);
+  html = html.replace('</head>', () => DARK_HEAD + '</head>');
+  const j = html.lastIndexOf('</body>');
+  return html.slice(0, j) + DARK_BODY + html.slice(j);
+}
 function buildActualizaciones(html, snap, stamp) {
   html = hideMondayLinks(html, '<a href="https://ibm.monday.com/', 2, 'actualizaciones');
   html = rep(html, "const PROXY = 'http://localhost:3000';", "const PROXY = '#static';", 'PROXY');
@@ -288,9 +318,9 @@ async function confirmAprPwd(){}
   boardA.items.forEach(it => { it.column_values = it.column_values.filter(cv => HE_COLS.indexOf(cv.id) < 0); });
   const stamp = REUSE ? reusedStamp : new Date().toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
 
-  const act = applyLogo(buildActualizaciones(read('dashboard_actualizaciones.html'), { [BOARDS.A]: snap[BOARDS.A], [BOARDS.M]: snap[BOARDS.M] }, stamp), [40], 'actualizaciones');
-  const aus = applyLogo(buildAusencias(read('dashboard_ausencias.html'), { [BOARDS.AUS]: snap[BOARDS.AUS] }, stamp), [40], 'ausencias');
-  const portal = applyLogo(injectShim(hideOwnerLinks(hideMondayLinks(read('index_v2.html'), '<a href="https://ibm.monday.com/', 2, 'portal'), '<a href="https://github.com/', 1, 'portal'), portalLeaderScript()), [44, 28], 'portal');
+  const act = darkMode(applyLogo(buildActualizaciones(read('dashboard_actualizaciones.html'), { [BOARDS.A]: snap[BOARDS.A], [BOARDS.M]: snap[BOARDS.M] }, stamp), [40], 'actualizaciones'), 'actualizaciones');
+  const aus = darkMode(applyLogo(buildAusencias(read('dashboard_ausencias.html'), { [BOARDS.AUS]: snap[BOARDS.AUS] }, stamp), [40], 'ausencias'), 'ausencias');
+  const portal = darkMode(applyLogo(injectShim(hideOwnerLinks(hideMondayLinks(read('index_v2.html'), '<a href="https://ibm.monday.com/', 2, 'portal'), '<a href="https://github.com/', 1, 'portal'), portalLeaderScript()), [44, 28], 'portal'), 'portal');
 
   // Contrasenas del codigo fuente (se leen en ejecucion, no se guardan en este script)
   const secrets = [];

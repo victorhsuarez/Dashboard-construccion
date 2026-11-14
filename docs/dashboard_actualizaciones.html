@@ -154,6 +154,8 @@
     @media(max-width:640px){.slide{padding:14px;}.two,.three{grid-template-columns:1fr;}.ot-grid{grid-template-columns:1fr;}}
   </style>
 <link rel="icon" type="image/png" href="assets/favicon.png">
+<style>html.dm{filter:invert(.92) hue-rotate(180deg);}.dm-sw{display:inline-flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;padding:0 0 0 4px;font:inherit;color:#6b7fa3;flex-shrink:0;}.dm-sw svg{width:14px;height:14px;}.dm-track{position:relative;width:34px;height:18px;border-radius:9px;background:#c7d7fc;transition:background .2s;display:inline-block;}.dm-knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s;}.dm-sw[aria-checked="true"] .dm-track{background:#0f62fe;}.dm-sw[aria-checked="true"] .dm-knob{transform:translateX(16px);}.dm-sw:focus-visible{outline:2px solid #0f62fe;outline-offset:3px;border-radius:6px;}</style>
+<script>try{if(localStorage.getItem('ibm_theme')==='dark')document.documentElement.classList.add('dm');}catch(e){}</script>
 </head>
 <body>
 <script>
@@ -1919,5 +1921,6 @@ setViernesDate();
   if(hash==='#slide3'){const t=document.getElementById('tab3');if(t)goSlide(3,t);}
 });
 </script>
+<script>(function(){var K='ibm_theme',R=document.documentElement,h=document.querySelector('header');if(!h)return;var sw=document.createElement('button');sw.type='button';sw.id='dmSwitch';sw.className='dm-sw';sw.setAttribute('role','switch');sw.title='Modo oscuro';sw.setAttribute('aria-label','Modo oscuro');sw.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span class="dm-track"><span class="dm-knob"></span></span>';function set(d){R.classList.toggle('dm',d);sw.setAttribute('aria-checked',d?'true':'false');}set(R.classList.contains('dm'));sw.onclick=function(){var d=!R.classList.contains('dm');set(d);try{localStorage.setItem(K,d?'dark':'light');}catch(e){}};var inner=h.querySelector(':scope > .max-w-7xl'),host;if(inner){host=inner.lastElementChild;}else{var last=h.lastElementChild;if(last&&last!==h.firstElementChild&&last.tagName==='DIV'){host=last;}else{host=document.createElement('div');host.style.cssText='display:flex;align-items:center;gap:12px';if(last&&last!==h.firstElementChild)host.appendChild(last);h.appendChild(host);}}host.appendChild(sw);})();</script>
 </body>
 </html>
