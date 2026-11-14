@@ -583,7 +583,7 @@ async function promptModAuth(id){if(await __needLeader()){setModLiderAuth(true);
   </div>
   <div style="display:flex;gap:8px;align-items:center;">
     <button id="backendBtn" class="tok-btn" onclick="checkBackend()">🔑 Backend</button>
-    <a data-leader-only href="https://ibm.monday.com/boards/18432741374" target="_blank" rel="noopener" class="mlink">
+    <a data-leader-only href="https://ibm.monday.com/boards/18432741374" id="boardLink" target="_blank" rel="noopener" class="mlink">
       <svg width="16" height="11" viewBox="0 0 28 20" aria-hidden="true"><line x1="5" y1="15" x2="10" y2="6" stroke="#f62b54" stroke-width="5" stroke-linecap="round"/><line x1="14" y1="15" x2="19" y2="6" stroke="#fc0" stroke-width="5" stroke-linecap="round"/><circle cx="24" cy="14.5" r="3" fill="#00ca72"/></svg>
       Board
     </a>
@@ -1058,6 +1058,7 @@ function goSlide(n,tab){
   document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));
   document.getElementById('slide'+n).classList.add('on');
   tab.classList.add('on');
+  const bl=document.getElementById('boardLink'); if(bl) bl.href='https://ibm.monday.com/boards/'+(n===3?'18433232131':'18432741374');
   if(n===3 && modItems.length===0) loadModalidad();
 }
 
