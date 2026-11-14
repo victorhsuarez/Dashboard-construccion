@@ -8,3 +8,5 @@ public/
 *.ps1
 
 fuente/
+
+.env.enc
