@@ -234,9 +234,9 @@ async function mup(itemId, columnId, file) {
   var fd = new FormData();
   fd.append('query', 'mutation ($file: File!) { add_file_to_column(item_id: ' + itemId + ', column_id: "' + columnId + '", file: $file) { id } }');
   fd.append('variables[file]', file, file.name);
-  /* La subida de archivos de Monday usa un endpoint propio: /v2/file (en /v2 no se aceptan archivos). */
+  /* Se sube por /v2: Monday lo acepta (verificado con clave real) y responde con cabeceras CORS. /v2/file NO responde CORS, el navegador bloquea la subida. */
   var r;
-  try { r = await fetch('https://api.monday.com/v2/file', { method: 'POST', headers: { 'Authorization': t }, body: fd }); }
+  try { r = await fetch('https://api.monday.com/v2', { method: 'POST', headers: { 'Authorization': t }, body: fd }); }
   catch (e) { if (e instanceof TypeError) { __setState('offline'); throw new Error('Sin conexion con Monday al subir ' + file.name); } throw e; }
   var j = {};
   try { j = await r.json(); } catch (e) {}
