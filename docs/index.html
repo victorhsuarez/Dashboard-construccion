@@ -603,7 +603,7 @@
   </style>
 </head>
 <body>
-<script>(function(){var L=["victor.h.suarez@ibm.com","jesus.perez1@ibm.com","angie.varon@ibm.com"];var s=document.createElement('style');s.textContent='html:not(.is-leader) [data-leader-only]{display:none!important}';(document.head||document.documentElement).appendChild(s);var t='';try{t=localStorage.getItem('monday_api_key')||sessionStorage.getItem('monday_api_key')||'';}catch(e){}if(!t)return;fetch('https://api.monday.com/v2',{method:'POST',headers:{'Content-Type':'application/json','Authorization':t,'API-Version':'2024-01'},body:JSON.stringify({query:'{me{email}}'})}).then(function(r){return r.json();}).then(function(j){var e=String((j.data&&j.data.me&&j.data.me.email)||'').trim().toLowerCase();if(L.indexOf(e)>-1)document.documentElement.classList.add('is-leader');}).catch(function(){});})();</script>
+<script>(function(){var L=["victor.h.suarez@ibm.com","jesus.perez1@ibm.com","angie.varon@ibm.com"],O=["victor.h.suarez@ibm.com"];var s=document.createElement('style');s.textContent='html:not(.is-leader) [data-leader-only]{display:none!important}html:not(.is-owner) [data-owner-only]{display:none!important}';(document.head||document.documentElement).appendChild(s);var t='';try{t=localStorage.getItem('monday_api_key')||sessionStorage.getItem('monday_api_key')||'';}catch(e){}if(!t)return;fetch('https://api.monday.com/v2',{method:'POST',headers:{'Content-Type':'application/json','Authorization':t,'API-Version':'2024-01'},body:JSON.stringify({query:'{me{email}}'})}).then(function(r){return r.json();}).then(function(j){var e=String((j.data&&j.data.me&&j.data.me.email)||'').trim().toLowerCase();if(L.indexOf(e)>-1)document.documentElement.classList.add('is-leader');if(O.indexOf(e)>-1)document.documentElement.classList.add('is-owner');}).catch(function(){});})();</script>
 
 
   <!-- Floating particles -->
@@ -863,7 +863,7 @@
             Success Factors
           </a>
 
-          <a href="https://github.com/victorhsuarez/Dashboard-construccion" target="_blank" rel="noopener" class="qlink">
+          <a data-owner-only href="https://github.com/victorhsuarez/Dashboard-construccion" target="_blank" rel="noopener" class="qlink">
             <span class="qlink-dot" style="background:#7de8f8"></span>
             GitHub · Dashboard Construcción
           </a>

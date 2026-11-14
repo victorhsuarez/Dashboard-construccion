@@ -96,15 +96,23 @@ function hideMondayLinks(html, prefix, expected, label) {
   if (n !== expected) throw new Error('Enlaces a Monday en ' + label + ': se esperaban ' + expected + ' y hay ' + n);
   return html.split(prefix).join(prefix.replace('<a ', '<a data-leader-only '));
 }
+// Solo el dueno del proyecto (Victor Suarez) ve estos enlaces (p.ej. GitHub): se marcan data-owner-only.
+const OWNER_EMAILS = Object.keys(LEADER_EMAILS).filter(e => LEADER_EMAILS[e] === 'SUAREZ');
+function hideOwnerLinks(html, prefix, expected, label) {
+  const n = html.split(prefix).length - 1;
+  if (n !== expected) throw new Error('Enlaces de dueno en ' + label + ': se esperaban ' + expected + ' y hay ' + n);
+  return html.split(prefix).join(prefix.replace('<a ', '<a data-owner-only '));
+}
 // El portal no lleva el shim completo: este mini-script muestra los enlaces solo si la clave API guardada pertenece a un lider.
 function portalLeaderScript() {
   const emails = JSON.stringify(Object.keys(LEADER_EMAILS));
-  return '<script>(function(){var L=' + emails + ';' +
-    "var s=document.createElement('style');s.textContent='html:not(.is-leader) [data-leader-only]{display:none!important}';(document.head||document.documentElement).appendChild(s);" +
+  const owners = JSON.stringify(OWNER_EMAILS);
+  return '<script>(function(){var L=' + emails + ',O=' + owners + ';' +
+    "var s=document.createElement('style');s.textContent='html:not(.is-leader) [data-leader-only]{display:none!important}html:not(.is-owner) [data-owner-only]{display:none!important}';(document.head||document.documentElement).appendChild(s);" +
     "var t='';try{t=localStorage.getItem('monday_api_key')||sessionStorage.getItem('monday_api_key')||'';}catch(e){}" +
     'if(!t)return;' +
     "fetch('https://api.monday.com/v2',{method:'POST',headers:{'Content-Type':'application/json','Authorization':t,'API-Version':'2024-01'},body:JSON.stringify({query:'{me{email}}'})})" +
-    ".then(function(r){return r.json();}).then(function(j){var e=String((j.data&&j.data.me&&j.data.me.email)||'').trim().toLowerCase();if(L.indexOf(e)>-1)document.documentElement.classList.add('is-leader');}).catch(function(){});" +
+    ".then(function(r){return r.json();}).then(function(j){var e=String((j.data&&j.data.me&&j.data.me.email)||'').trim().toLowerCase();if(L.indexOf(e)>-1)document.documentElement.classList.add('is-leader');if(O.indexOf(e)>-1)document.documentElement.classList.add('is-owner');}).catch(function(){});" +
     '})();</script>\n';
 }
 
@@ -277,7 +285,7 @@ async function confirmAprPwd(){}
 
   const act = buildActualizaciones(read('dashboard_actualizaciones.html'), { [BOARDS.A]: snap[BOARDS.A], [BOARDS.M]: snap[BOARDS.M] }, stamp);
   const aus = buildAusencias(read('dashboard_ausencias.html'), { [BOARDS.AUS]: snap[BOARDS.AUS] }, stamp);
-  const portal = injectShim(hideMondayLinks(read('index_v2.html'), '<a href="https://ibm.monday.com/', 2, 'portal'), portalLeaderScript());
+  const portal = injectShim(hideOwnerLinks(hideMondayLinks(read('index_v2.html'), '<a href="https://ibm.monday.com/', 2, 'portal'), '<a href="https://github.com/', 1, 'portal'), portalLeaderScript());
 
   // Contrasenas del codigo fuente (se leen en ejecucion, no se guardan en este script)
   const secrets = [];
