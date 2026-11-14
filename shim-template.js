@@ -185,16 +185,25 @@ async function mq(query) {
     try {
       var r = await __liveQuery(query, t); __setState('live');
       /* Clave valida pero sin acceso al tablero: Monday responde boards:[]; se usa la foto para no romper la pagina. */
-      if (r && Array.isArray(r.boards) && !r.boards.length) { try { return __snapAnswer(query); } catch (x) {} }
+      if (r && Array.isArray(r.boards) && !r.boards.length) { try { var sa = __snapAnswer(query); __snapNotice('tu usuario de Monday no tiene acceso a este tablero'); return sa; } catch (x) {} }
       return r;
     }
     catch (e) {
       if (e.auth) { __clearTok(); __setState('badkey'); }
       else if (e instanceof TypeError) { __setState('offline'); }
       else if (!e.perm) { throw e; }
+      else { __snapNotice('Monday rechaz\u00f3 la lectura (permisos)'); }
     }
   }
   return __snapAnswer(query);
+}
+
+/* Aviso cuando se muestran datos de la foto en lugar de los de Monday (una sola vez por pagina) */
+var __snapNoticed = false;
+function __snapNotice(why) {
+  if (__snapNoticed) return; __snapNoticed = true;
+  /* se retrasa para que no lo tape el aviso de "cargado" que muestra la pagina al terminar */
+  setTimeout(function () { try { showToast('\u26A0\uFE0F Se muestran datos de la foto del ' + __STAMP + ', no los actuales de Monday: ' + why + '. Pide acceso al tablero.', 'err'); } catch (e) {} }, 1500);
 }
 
 async function mup(itemId, columnId, file) {
