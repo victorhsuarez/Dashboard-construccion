@@ -16,13 +16,6 @@ const TOKEN = String(process.env.MONDAY_API_TOKEN || '').replace(/^\uFEFF/, '').
 if (!REUSE && !TOKEN) { console.error('Falta MONDAY_API_TOKEN (o ENV_PASSPHRASE para .env.enc), o esta vacia.'); process.exit(1); }
 if (!REUSE && !/^[\x21-\x7E]+$/.test(TOKEN)) { console.error('MONDAY_API_TOKEN tiene espacios, saltos de linea o caracteres no validos. Copiala de nuevo, completa y sin espacios.'); process.exit(1); }
 
-// URL del puente (Cloudflare Worker) para ADCAR sin cuenta en Monday. Se lee de puente.json {"url":"https://..."}; si no existe, el puente queda desactivado.
-let BRIDGE_URL = '';
-try {
-  BRIDGE_URL = String(JSON.parse(fs.readFileSync(path.join(__dirname, 'puente.json'), 'utf8')).url || '').trim().replace(/\/+$/, '');
-} catch (e) { BRIDGE_URL = ''; }
-if (BRIDGE_URL && !/^https:\/\/[A-Za-z0-9.-]+(:\d+)?(\/[A-Za-z0-9._~-]*)*$/.test(BRIDGE_URL)) { console.error('puente.json: la URL debe ser https:// sin parametros.'); process.exit(1); }
-
 const SRC = path.join(__dirname, 'fuente');
 const OUT = path.join(__dirname, 'docs');
 const BOARDS = { A: '18432741374', M: '18433232131', AUS: '18432588237' };
@@ -85,9 +78,8 @@ function shim(snap, stamp, toastErr) {
     .replace('__SNAP_JSON__', () => data)
     .replace('__STAMP_JSON__', () => JSON.stringify(stamp))
     .replace('__LEADERS_JSON__', () => JSON.stringify(LEADERS))
-    .replace('__BRIDGE_JSON__', () => JSON.stringify(BRIDGE_URL))
     .replace('__TOAST_ERR__', () => toastErr);
-  if (/__(SNAP_JSON|STAMP_JSON|TOAST_ERR|LEADERS_JSON|BRIDGE_JSON)__/.test(code)) throw new Error('Quedaron marcadores sin sustituir en shim-template.js');
+  if (/__(SNAP_JSON|STAMP_JSON|TOAST_ERR|LEADERS_JSON)__/.test(code)) throw new Error('Quedaron marcadores sin sustituir en shim-template.js');
   return '<script>\n' + code + '\n</script>\n';
 }
 
@@ -170,13 +162,11 @@ async function __needLeader(){
 async function renderMisHE(silent){
   var c=document.getElementById("ot-mis-queue"); if(!c) return;
   function msg(t,col){c.innerHTML='<div style="text-align:center;padding:28px;color:'+(col||'var(--muted)')+';font-size:12px;">'+t+'</div>';}
-  if(!__tok()&&!__bridgeOn()){msg("Conecta tu clave API o el c\\u00f3digo de equipo (bot\\u00f3n \\ud83d\\udd11 de abajo a la izquierda) para ver tus HE.");return;}
+  if(!__tok()){msg("Conecta tu clave API (bot\\u00f3n \\ud83d\\udd11 de abajo a la izquierda) para ver tus HE.");return;}
   var norm=function(s){return (s||"").toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/\\s+/g," ").trim();};
   if(silent!==true) msg("\\u23f3 Cargando\\u2026");
   try{
-    /* Sin clave personal (ADCAR con codigo de equipo): se usa el nombre escrito en el campo ADCAR de la solicitud */
-    var who=__tok()?((await __liveQuery("{me{id name email}}",__tok())).me||{}):{name:(document.getElementById("ot-adcar")||{}).value||""};
-    if(!__tok()&&norm(who.name).split(/[^a-z]+/).filter(function(w){return w.length>1;}).length<2){msg("Escribe tu nombre completo en el campo ADCAR de la solicitud para ver tus HE.");return;}
+    var who=(await __liveQuery("{me{id name email}}",__tok())).me||{};
     var email=norm(who.email), src=norm(who.name);
     if(!src||src.indexOf("@")>-1) src=email.split("@")[0];
     var toks=src.split(/[^a-z]+/).filter(function(w){return w.length>1;});

@@ -6,9 +6,6 @@
 (function () { var s = document.createElement('style'); s.textContent = 'html:not(.is-leader) [data-leader-only]{display:none!important}'; (document.head || document.documentElement).appendChild(s); })();
 var __SNAP = __SNAP_JSON__;
 var __STAMP = __STAMP_JSON__;
-var __BRIDGE = __BRIDGE_JSON__; // URL del puente (Cloudflare Worker) o ''. Con codigo de equipo, los ADCAR escriben/leen por el puente sin ser miembros de Monday.
-var __CODE_KEY = 'adcar_team_code';
-var __grants = {}, __bridgeAt = 0, __bridgeBusy = null, __bridgeDirty = false;
 var __LEADERS = __LEADERS_JSON__; // correo (minusculas) -> {k: PEREZ|SUAREZ|VARON, s: sal, h: huella PBKDF2 del PIN, i: iteraciones}
 var __NOKEY = 'Falta tu clave API de Monday. Conectala en la ventana que se abrio (o con el boton \uD83D\uDD11 abajo a la izquierda) y vuelve a pulsar el boton. No se guardo el cambio.';
 var __TK_KEY = 'monday_api_key';
@@ -33,17 +30,11 @@ function __clearTok() {
 }
 function __roToast(m) { try { showToast(m__TOAST_ERR__); } catch (e) { alert(m); } }
 
-function __code() { try { return localStorage.getItem(__CODE_KEY) || ''; } catch (e) { return ''; } }
-function __clearCode() { try { localStorage.removeItem(__CODE_KEY); } catch (e) {} }
-/* Modo puente: hay puente configurado, codigo de equipo guardado y NO hay clave personal (los lideres usan su clave directo) */
-function __bridgeOn() { return !!(__BRIDGE && __code() && !__tok()); }
-function __nokey() { return __BRIDGE ? 'Ingresa el c\u00f3digo de equipo (bot\u00f3n \uD83D\uDD11 abajo a la izquierda) para guardar en Monday.' : __NOKEY; }
-
 function __statusText() {
   if (__state === 'live') return '\uD83D\uDFE2 En vivo con Monday';
   if (__state === 'offline') return '\uD83D\uDD34 Sin conexion o clave invalida';
-  if (__state === 'badkey') return __BRIDGE ? '\uD83D\uDD11 C\u00f3digo o clave no v\u00e1lidos' : '\uD83D\uDD11 Clave API no valida';
-  return __BRIDGE ? '\uD83D\uDD11 C\u00f3digo de equipo' : '\uD83D\uDD11 Clave API';
+  if (__state === 'badkey') return '\uD83D\uDD11 Clave API no valida';
+  return '\uD83D\uDD11 Clave API';
 }
 function __setState(s) {
   __state = s;
@@ -112,64 +103,11 @@ function __permMsg(e) {
   return 'Tu usuario de Monday no tiene permiso para guardar este cambio (' + e.message + '). Pide acceso de edicion al tablero. No se guardo el cambio.';
 }
 
-/* ---- Puente: el ADCAR solo puede CREAR (actualizacion, HE, ausencia) y adjuntar a lo que acaba de crear; leer viene del puente ---- */
-async function __bridgeFetch(path, opts) {
-  opts = opts || {};
-  opts.headers = Object.assign({ 'X-Team-Code': __code() }, opts.headers || {});
-  var r = await fetch(__BRIDGE + path, opts);
-  var j = {};
-  try { j = await r.json(); } catch (e) {}
-  if (r.status === 401) { __clearCode(); __setState('badkey'); var a = new Error('C\u00f3digo de equipo no v\u00e1lido. Vuelve a ingresarlo.'); a.auth = true; throw a; }
-  if (!r.ok) throw new Error(j.error || ('Puente HTTP ' + r.status));
-  return j;
-}
-function __bridgeRefresh(force) {
-  if (!force && __bridgeAt && Date.now() - __bridgeAt < 20000) return Promise.resolve();
-  if (__bridgeBusy) return __bridgeBusy;
-  __bridgeBusy = __bridgeFetch('/snapshot' + (__bridgeDirty ? '?fresh=1' : '')).then(function (j) {
-    __SNAP = j.boards; __STAMP = j.stamp; __bridgeAt = Date.now(); __bridgeDirty = false; __bridgeBusy = null; __setState('live');
-  }, function (e) {
-    __bridgeBusy = null; __bridgeAt = Date.now() - 10000; // reintenta en ~10 s
-    if (e instanceof TypeError) __setState('offline');
-    throw e;
-  });
-  return __bridgeBusy;
-}
-async function __bridgeMq(query) {
-  if (/^\s*mutation/i.test(query)) {
-    var m = query.match(/create_item\s*\(\s*board_id\s*:\s*"?(\d+)"?\s*,\s*item_name\s*:\s*("(?:[^"\\]|\\.)*")\s*,\s*column_values\s*:\s*("(?:[^"\\]|\\.)*")/);
-    if (!m) throw new Error('Solo los l\u00edderes (con su clave API de Monday) pueden editar, aprobar o eliminar. No se guard\u00f3 el cambio.');
-    var name, cv;
-    try { name = JSON.parse(m[2]); cv = JSON.parse(JSON.parse(m[3])); } catch (e) { throw new Error('No se pudo leer la solicitud. No se guard\u00f3 el cambio.'); }
-    var j;
-    try { j = await __bridgeFetch('/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ board: m[1], name: name, column_values: cv }) }); }
-    catch (e) { if (e instanceof TypeError) { __setState('offline'); throw new Error('Sin conexion con el puente. No se guard\u00f3 el cambio.'); } throw e; }
-    __grants[j.create_item.id] = { board: j.board, grant: j.grant };
-    __bridgeDirty = true; __bridgeAt = 0;
-    __setState('live');
-    return { create_item: { id: j.create_item.id } };
-  }
-  try { await __bridgeRefresh(); } catch (e) {} // si falla se responde con la ultima foto
-  return __snapAnswer(query);
-}
-async function __bridgeUpload(itemId, columnId, file) {
-  var g = __grants[itemId];
-  if (!g) throw new Error('Solo se pueden adjuntar archivos a una solicitud creada en esta sesi\u00f3n.');
-  var fd = new FormData();
-  fd.append('board', g.board); fd.append('itemId', String(itemId)); fd.append('columnId', columnId); fd.append('grant', g.grant);
-  fd.append('file', file, file.name);
-  try { await __bridgeFetch('/upload', { method: 'POST', body: fd }); }
-  catch (e) { if (e instanceof TypeError) { __setState('offline'); throw new Error('Sin conexion con el puente al subir ' + file.name); } throw e; }
-  __bridgeDirty = true; __bridgeAt = 0;
-  return { success: true };
-}
-
 async function mq(query) {
   query = String(query);
   var t = __tok();
-  if (!t && __bridgeOn()) return __bridgeMq(query);
   if (/^\s*mutation/i.test(query)) {
-    if (!t) { __askKey(); throw new Error(__nokey()); }
+    if (!t) { __askKey(); throw new Error(__NOKEY); }
     try { var d = await __liveQuery(query, t); __setState('live'); return d; }
     catch (e) {
       if (e.auth) { __clearTok(); __setState('badkey'); throw new Error('Clave API no valida. Vuelve a conectarla. No se guardo el cambio.'); }
@@ -208,8 +146,7 @@ function __snapNotice(why) {
 
 async function mup(itemId, columnId, file) {
   var t = __tok();
-  if (!t && __bridgeOn()) return __bridgeUpload(itemId, columnId, file);
-  if (!t) { __askKey(); throw new Error(__nokey()); }
+  if (!t) { __askKey(); throw new Error(__NOKEY); }
   if (!/^\d+$/.test(String(itemId)) || !/^[A-Za-z0-9_]+$/.test(String(columnId))) throw new Error('Datos de archivo invalidos');
   var fd = new FormData();
   fd.append('query', 'mutation ($file: File!) { add_file_to_column(item_id: ' + itemId + ', column_id: "' + columnId + '", file: $file) { id } }');
@@ -297,29 +234,19 @@ async function __leaderAuth() {
 }
 
 /* Falta la clave: abre la ventana de conexion sin recargar la pagina (para no perder lo que la persona ya lleno) */
-function __askKey() { if (!__BRIDGE && !document.getElementById('__apiModal')) { try { __openApiModal(true); } catch (e) {} } }
+function __askKey() { if (!document.getElementById('__apiModal')) { try { __openApiModal(true); } catch (e) {} } }
 function __openApiModal(keepPage) {
   var old = document.getElementById('__apiModal'); if (old) old.remove();
-  var connected = !!__tok() || !!__code();
+  var connected = !!__tok();
   var ov = document.createElement('div');
   ov.id = '__apiModal';
   ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100000;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif';
   var box = document.createElement('div');
   box.style.cssText = 'background:#fff;color:#0f172a;border-radius:12px;padding:20px;width:min(420px,92vw);box-shadow:0 10px 40px rgba(0,0,0,.3)';
   box.innerHTML = '<div style="font-size:15px;font-weight:700;margin-bottom:6px">Conectar con Monday</div>';
-  var codeInp = null;
-  if (__BRIDGE) {
-    var d1 = document.createElement('div');
-    d1.style.cssText = 'font-size:12px;color:#475569;line-height:1.5;margin-bottom:6px';
-    d1.innerHTML = '<b>ADCAR:</b> escribe el c\u00f3digo de equipo que te dio tu l\u00edder. Con \u00e9l env\u00edas tus actualizaciones, horas extras y ausencias a Monday y ves sus datos, sin necesitar cuenta en Monday. Se guarda en este navegador y no se vuelve a pedir.';
-    codeInp = document.createElement('input');
-    codeInp.type = 'password'; codeInp.placeholder = 'C\u00f3digo de equipo'; codeInp.autocomplete = 'off';
-    codeInp.style.cssText = 'width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;margin-bottom:12px';
-    box.appendChild(d1); box.appendChild(codeInp);
-  }
   var d2 = document.createElement('div');
   d2.style.cssText = 'font-size:12px;color:#475569;line-height:1.5;margin-bottom:10px';
-  d2.innerHTML = (__BRIDGE ? '<b>L\u00edderes:</b> ' : '') + 'pega tu clave API personal de Monday ' +
+  d2.innerHTML = 'pega tu clave API personal de Monday ' +
     '(avatar \u2192 Developers \u2192 My access tokens). Se guarda solo en este navegador (no se vuelve a pedir; ' +
     'puedes quitarla con Desconectar) y se env\u00eda \u00fanicamente a api.monday.com. Podr\u00e1s ver y guardar cambios seg\u00fan tus permisos en Monday; ' +
     'la p\u00e1gina se actualiza sola cada 45 s.';
@@ -341,29 +268,14 @@ function __openApiModal(keepPage) {
   bCancel.onclick = function () { ov.remove(); };
   if (connected) {
     var bOff = btn('Desconectar', '#fee2e2', '#991b1b');
-    bOff.onclick = function () { __clearTok(); __clearCode(); location.reload(); };
+    bOff.onclick = function () { __clearTok(); location.reload(); };
     row.appendChild(bOff);
   }
   row.appendChild(bCancel); row.appendChild(bOk);
   async function connect() {
     var t = inp.value.trim();
-    var cd = codeInp ? codeInp.value.trim() : '';
-    if (!t && !cd) { err.textContent = codeInp ? 'Escribe el c\u00f3digo de equipo o tu clave API.' : 'Escribe tu clave API.'; return; }
+    if (!t) { err.textContent = 'Escribe tu clave API.'; return; }
     bOk.disabled = true; bOk.textContent = 'Verificando\u2026'; err.textContent = '';
-    if (!t) {
-      try {
-        var cr = await fetch(__BRIDGE + '/check', { headers: { 'X-Team-Code': cd } });
-        if (cr.status === 401) { bOk.disabled = false; bOk.textContent = 'Conectar'; err.textContent = 'C\u00f3digo de equipo no v\u00e1lido.'; return; }
-        if (cr.status === 429) { bOk.disabled = false; bOk.textContent = 'Conectar'; err.textContent = 'Demasiados intentos. Espera unos minutos.'; return; }
-        if (!cr.ok) throw new Error('Puente HTTP ' + cr.status);
-        localStorage.setItem(__CODE_KEY, cd);
-        location.reload();
-      } catch (e) {
-        bOk.disabled = false; bOk.textContent = 'Conectar';
-        err.textContent = e instanceof TypeError ? 'No se pudo conectar con el puente. Revisa tu conexi\u00f3n.' : e.message;
-      }
-      return;
-    }
     if (!/^[\x21-\x7E]+$/.test(t)) { bOk.disabled = false; bOk.textContent = 'Conectar'; err.textContent = 'La clave tiene espacios, saltos de l\u00ednea o caracteres no v\u00e1lidos. C\u00f3piala de nuevo, completa y sin espacios.'; return; }
     try {
       await __liveQuery('{me{id}}', t);
@@ -389,10 +301,9 @@ function __openApiModal(keepPage) {
   }
   bOk.onclick = connect;
   inp.onkeydown = function (ev) { if (ev.key === 'Enter') connect(); };
-  if (codeInp) codeInp.onkeydown = function (ev) { if (ev.key === 'Enter') connect(); };
   ov.onclick = function (ev) { if (ev.target === ov) ov.remove(); };
   box.appendChild(inp); box.appendChild(err); box.appendChild(row);
-  ov.appendChild(box); document.body.appendChild(ov); (codeInp || inp).focus();
+  ov.appendChild(box); document.body.appendChild(ov); inp.focus();
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -411,9 +322,6 @@ document.addEventListener('DOMContentLoaded', function () {
       else if (e instanceof TypeError) { __mondayReachable().then(function (up) { __setState(up ? 'badkey' : 'offline'); }); } // clave rechazada (401 sin CORS) o sin red; no se borra por si fue un fallo pasajero
       else { __setState('offline'); }
     });
-  } else if (__bridgeOn()) {
-    __state = 'live';
-    __bridgeRefresh(true).catch(function (e) { if (!e.auth) __setState('offline'); });
   }
   __setState(__state);
 });
