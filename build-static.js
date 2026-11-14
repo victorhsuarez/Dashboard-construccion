@@ -12,8 +12,9 @@ const REUSE = process.argv.includes('--reusar-foto');
 if (!REUSE && !process.env.MONDAY_API_TOKEN) {
   require('./envcrypt').loadEncryptedEnv(path.join(__dirname, '.env.enc'), process.env.ENV_PASSPHRASE);
 }
-const TOKEN = process.env.MONDAY_API_TOKEN;
-if (!REUSE && !TOKEN) { console.error('Falta MONDAY_API_TOKEN (o ENV_PASSPHRASE para .env.enc).'); process.exit(1); }
+const TOKEN = String(process.env.MONDAY_API_TOKEN || '').replace(/^\uFEFF/, '').trim();
+if (!REUSE && !TOKEN) { console.error('Falta MONDAY_API_TOKEN (o ENV_PASSPHRASE para .env.enc), o esta vacia.'); process.exit(1); }
+if (!REUSE && !/^[\x21-\x7E]+$/.test(TOKEN)) { console.error('MONDAY_API_TOKEN tiene espacios, saltos de linea o caracteres no validos. Copiala de nuevo, completa y sin espacios.'); process.exit(1); }
 
 // URL del puente (Cloudflare Worker) para ADCAR sin cuenta en Monday. Se lee de puente.json {"url":"https://..."}; si no existe, el puente queda desactivado.
 let BRIDGE_URL = '';
