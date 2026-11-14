@@ -673,7 +673,7 @@ async function promptModAuth(id){if(await __needLeader()){setModLiderAuth(true);
   <div class="hdr-l">
     <img src="assets/ibm-logo.png" alt="IBM" height="40" style="height:40px;width:auto;display:block;">
     <div class="hdr-div"></div>
-    <span style="font-size:12px;font-weight:500;color:var(--muted);"><strong style="color:var(--text);">Gestión de Tiempo – Construcción 2026</strong> · Boards 18432741374 · 18433232131</span>
+    <span style="font-size:12px;font-weight:500;color:var(--muted);"><strong style="color:var(--text);">Gestión de Tiempo – Construcción 2026</strong></span>
   </div>
   <div style="display:flex;gap:8px;align-items:center;">
     <button id="backendBtn" class="tok-btn" onclick="checkBackend()">🔑 Backend</button>
@@ -832,12 +832,8 @@ async function promptModAuth(id){if(await __needLeader()){setModLiderAuth(true);
      ══════════════════════════════ -->
 <div class="slide" id="slide2">
   <div class="section-title">Solicitud de Horas Extras</div>
-  <div class="section-sub">Solo líderes autorizados pueden aprobar. Se sincroniza con Monday Board <strong>18432741374</strong>.</div>
+  <div class="section-sub">Solo líderes autorizados pueden aprobar.</div>
 
-  <div class="cmap" style="margin-bottom:18px;">
-    <strong style="color:#93c5fd;margin-right:5px;font-size:11px;">🔗 Board 18432741374:</strong>
-    <span class="ct">Fecha HE</span><span class="ct">Horas Extras</span><span class="ct">Aprobador</span><span class="ct">Estado Aprobación</span><span class="ct">Comentarios HE</span>
-  </div>
 
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding:11px 16px;border-left:3px solid var(--accent3);background:var(--p-teal);border-radius:0 10px 10px 0;">
     <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;">Vista:</span>
@@ -1215,7 +1211,7 @@ if(gc){const gv=it.column_values&&it.column_values.find(c=>c.id===gc.id);} // ge
 // gs.innerHTML eliminado - opciones fijas
 // [...gers] eliminado - opciones fijas
     if(!adcars.length)showToast('\u26a0\ufe0f No se encontraron ADCARs en el tablero','err');
-    else showToast(`\u2705 ${adcars.length} ADCARs cargados del Board ${BOARD_A}`,'ok');
+    else showToast(`\u2705 ${adcars.length} ADCARs cargados`,'ok');
   }catch(e){console.error(e);showToast('\u274c Error al cargar ADCARs: '+e.message,'err');}
   finally{sp.style.display='none';gsp.style.display='none';}
 }
@@ -1241,7 +1237,7 @@ async function enviarAMonday(e){
   const hs=document.getElementById('sel-hp').value;
   if(!ts&&!ss&&!hs){showToast('⚠️ Selecciona el estado de al menos un sistema','err');return;}
   btn.disabled=true;btn.textContent='⏳ Enviando…';
-  pshow('Enviando a Monday Board '+BOARD_A+'…');
+  pshow('Enviando a Monday…');
   try{
     pset(15,'Preparando datos…');
     const cv={};
@@ -1351,7 +1347,7 @@ async function syncSlide1(e){
   if(cn===0&&tf===0){showToast('⚠️ Confirma al menos un sistema o adjunta soportes','err');return;}
   const c=getCollab();
   btn.disabled=true;btn.textContent='⏳ Sincronizando…';
-  pshow('Sincronizando con Monday Board '+BOARD_A+'…');
+  pshow('Sincronizando con Monday…');
   try{
     pset(15,'Preparando columnas…');
     const cv={};
@@ -1833,7 +1829,7 @@ function __reqModPwd_live(){
 }
 
 async function loadModalidad(){
-  pshow('Cargando Modalidad de Trabajo del Board '+BOARD_M+'…');
+  pshow('Cargando Modalidad de Trabajo…');
   try{
     pset(20,'Consultando board…');
     const cols=[MOD_COL.region,MOD_COL.modalidad,MOD_COL.semana,MOD_COL.aprobador,MOD_COL.estado,MOD_COL.comentarios].map(x=>`"${x}"`).join(',');
@@ -1888,7 +1884,7 @@ function renderMod(){
   /* Table */
   const tbody=document.getElementById('modBody');
   const pager=document.getElementById('modPager');
-  if(!items.length){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--muted);font-size:12px;">📭 Sin registros. Sincroniza desde Monday Board ${BOARD_M}.</td></tr>`;pager.textContent='';return;}
+  if(!items.length){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--muted);font-size:12px;">📭 Sin registros. Pulsa Sincronizar para cargar los datos de Monday.</td></tr>`;pager.textContent='';return;}
   const MC={'Presencial':'#059669','Home Office':'#0f62fe','Ausente':'#d97706'};
   const EC={'Aprobación':'#059669','En revisión':'#d97706','Rechazadas':'#dc2626'};
   tbody.innerHTML=items.map(it=>{
@@ -1909,7 +1905,7 @@ function renderMod(){
       <td style="text-align:center;">${editBtn}</td>
     </tr>`;
   }).join('');
-  pager.textContent=`${items.length} de ${modItems.length} registros · Board ${BOARD_M}${modLiderAuth?' · 🔓 Líder activo':''}`;
+  pager.textContent=`${items.length} de ${modItems.length} registros${modLiderAuth?' · 🔓 Líder activo':''}`;
 }
 
 /* Abrir edición tras auth (clic en botón 🔒) */
