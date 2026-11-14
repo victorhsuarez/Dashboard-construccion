@@ -116,6 +116,20 @@ function portalLeaderScript() {
     '})();</script>\n';
 }
 
+// Logo: se sustituyen los dibujos SVG hechos a mano por el logo real (assets/ibm-logo.png). heights = alto en px de cada logo, en orden de aparicion.
+const LOGO_RE = /(?:<!--\s*IBM Logo[\s\S]*?-->\s*)?<svg[^>]*aria-label="IBM"[\s\S]*?<\/svg>/g;
+function applyLogo(html, heights, label) {
+  const n = (html.match(LOGO_RE) || []).length;
+  if (n !== heights.length) throw new Error('Logos en ' + label + ': se esperaban ' + heights.length + ' y hay ' + n);
+  let i = 0;
+  html = html.replace(LOGO_RE, () => {
+    const h = heights[i++];
+    return '<img src="assets/ibm-logo.png" alt="IBM" height="' + h + '" style="height:' + h + 'px;width:auto;display:block;">';
+  });
+  if (html.split('</head>').length !== 2) throw new Error('No se encontro un unico </head> en ' + label);
+  return html.replace('</head>', () => '<link rel="icon" type="image/png" href="assets/favicon.png">\n</head>');
+}
+
 function injectShim(html, shimHtml) {
   const m = html.match(/<body[^>]*>/);
   if (!m) throw new Error('No se encontro <body>');
@@ -283,9 +297,9 @@ async function confirmAprPwd(){}
   boardA.items.forEach(it => { it.column_values = it.column_values.filter(cv => HE_COLS.indexOf(cv.id) < 0); });
   const stamp = REUSE ? reusedStamp : new Date().toLocaleString('es-MX', { dateStyle: 'short', timeStyle: 'short' });
 
-  const act = buildActualizaciones(read('dashboard_actualizaciones.html'), { [BOARDS.A]: snap[BOARDS.A], [BOARDS.M]: snap[BOARDS.M] }, stamp);
-  const aus = buildAusencias(read('dashboard_ausencias.html'), { [BOARDS.AUS]: snap[BOARDS.AUS] }, stamp);
-  const portal = injectShim(hideOwnerLinks(hideMondayLinks(read('index_v2.html'), '<a href="https://ibm.monday.com/', 2, 'portal'), '<a href="https://github.com/', 1, 'portal'), portalLeaderScript());
+  const act = applyLogo(buildActualizaciones(read('dashboard_actualizaciones.html'), { [BOARDS.A]: snap[BOARDS.A], [BOARDS.M]: snap[BOARDS.M] }, stamp), [40], 'actualizaciones');
+  const aus = applyLogo(buildAusencias(read('dashboard_ausencias.html'), { [BOARDS.AUS]: snap[BOARDS.AUS] }, stamp), [40], 'ausencias');
+  const portal = applyLogo(injectShim(hideOwnerLinks(hideMondayLinks(read('index_v2.html'), '<a href="https://ibm.monday.com/', 2, 'portal'), '<a href="https://github.com/', 1, 'portal'), portalLeaderScript()), [44, 28], 'portal');
 
   // Contrasenas del codigo fuente (se leen en ejecucion, no se guardan en este script)
   const secrets = [];
@@ -307,7 +321,9 @@ async function confirmAprPwd(){}
   fs.writeFileSync(path.join(OUT, 'dashboard_ausencias.html'), aus);
   fs.writeFileSync(path.join(OUT, 'index.html'), portal);
   fs.writeFileSync(path.join(OUT, 'index_v2.html'), portal);
-  fs.copyFileSync(path.join(SRC, 'favicon.ico'), path.join(OUT, 'favicon.ico'));
+  fs.mkdirSync(path.join(OUT, 'assets'), { recursive: true });
+  ['ibm-logo.png', 'favicon.png'].forEach(f => fs.copyFileSync(path.join(__dirname, 'assets', f), path.join(OUT, 'assets', f)));
+  fs.copyFileSync(path.join(__dirname, 'assets', 'favicon.ico'), path.join(OUT, 'favicon.ico'));
   fs.writeFileSync(path.join(OUT, '.nojekyll'), '');
   console.log('OK: docs/ generado (datos al ' + stamp + ')');
 })().catch(e => { console.error('Error:', e.message); process.exit(1); });
